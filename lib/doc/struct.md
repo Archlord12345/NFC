@@ -11,6 +11,7 @@
 2. [Schéma de Base de Données](#2--schéma-de-base-de-données)
 3. [Dépendances](#3--dépendances)
 4. [Guide Clean Architecture — Comment travailler sur un module](#4--guide-clean-architecture--comment-travailler-sur-un-module)
+5. [Feature Modules Implémentés](#5--feature-modules-implémentés)
 
 ---
 
@@ -413,6 +414,82 @@ class WalletRepositoryImpl implements WalletRepository {
       │                    retourne Entity                       │
       └──────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 5 — Feature Modules Implémentés
+
+### 5.1 Module Auth (Authentification)
+
+> Cas d'utilisation couverts : **AU-1** (Connexion), **AU-2** (Déconnexion)
+
+#### Arborescence
+
+```
+lib/features/auth/
+├── domain/
+│   ├── entities/
+│   │   └── utilisateur.dart              # Entité Utilisateur (Dart pur)
+│   ├── repositories/
+│   │   └── auth_repository.dart          # Contrat abstrait AuthRepository
+│   └── usecases/
+│       ├── login_usecase.dart            # AU-1 : Connexion
+│       ├── logout_usecase.dart           # AU-2 : Déconnexion
+│       └── get_utilisateur_connecte_usecase.dart  # Vérification de session
+├── data/
+│   ├── models/
+│   │   └── utilisateur_model.dart        # UtilisateurModel (fromMap / toMap)
+│   ├── datasources/
+│   │   └── auth_local_datasource.dart    # Requêtes SQLite (Sqflite)
+│   └── repositories/
+│       └── auth_repository_impl.dart     # Implémentation du contrat
+└── presentation/
+    ├── pages/
+    │   └── login_page.dart               # Page de connexion (UI)
+    └── providers/
+        └── auth_provider.dart            # Gestion d'état (ChangeNotifier)
+```
+
+#### Fichiers et responsabilités
+
+| Couche | Fichier | Rôle |
+|---|---|---|
+| **Domain** | `utilisateur.dart` | Entité métier pure : `id`, `email`, `estConnecte` |
+| **Domain** | `auth_repository.dart` | Interface : `login()`, `logout()`, `getUtilisateurConnecte()` |
+| **Domain** | `login_usecase.dart` | Exécute la connexion via le contrat repository |
+| **Domain** | `logout_usecase.dart` | Exécute la déconnexion via le contrat repository |
+| **Domain** | `get_utilisateur_connecte_usecase.dart` | Vérifie la session active au démarrage |
+| **Data** | `utilisateur_model.dart` | Sérialisation SQLite (`fromMap` / `toMap`), étend `Utilisateur` |
+| **Data** | `auth_local_datasource.dart` | Requêtes SQL concrètes (à brancher sur `Database` Sqflite) |
+| **Data** | `auth_repository_impl.dart` | Implémente `AuthRepository`, délègue au datasource |
+| **Presentation** | `login_page.dart` | Formulaire e-mail / mot de passe + biométrie |
+| **Presentation** | `auth_provider.dart` | `ChangeNotifier` — états : `initial`, `loading`, `authenticated`, `unauthenticated`, `error` |
+
+#### Flux de données
+
+```
+LoginPage ──▶ AuthProvider ──▶ LoginUseCase ──▶ AuthRepository (contrat)
+                                                      │
+                                              AuthRepositoryImpl
+                                                      │
+                                              AuthLocalDataSource
+                                                      │
+                                                   SQLite
+```
+
+#### Statut d'implémentation
+
+| Élément | Statut |
+|---|---|
+| Entité `Utilisateur` | ✅ Terminé |
+| Contrat `AuthRepository` | ✅ Terminé |
+| Use cases (Login, Logout, CheckSession) | ✅ Terminé |
+| `UtilisateurModel` (fromMap/toMap) | ✅ Terminé |
+| `AuthLocalDataSource` (requêtes SQL) | 🔲 TODO — brancher `Database` Sqflite |
+| `AuthRepositoryImpl` | 🔲 TODO — brancher hachage mot de passe |
+| `LoginPage` (UI) | ✅ Terminé (layout + validation) |
+| `AuthProvider` (état) | ✅ Terminé |
+| Injection de dépendances (GetIt) | 🔲 TODO |
 
 ---
 
