@@ -1,30 +1,44 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:provider/provider.dart';
 import 'package:mon_projet_nfc/main.dart';
+import 'package:mon_projet_nfc/features/auth/presentation/providers/auth_provider.dart';
+import 'package:mon_projet_nfc/features/auth/domain/entities/utilisateur.dart';
+import 'package:mon_projet_nfc/features/auth/domain/usecases/login_usecase.dart';
+import 'package:mon_projet_nfc/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:mon_projet_nfc/features/auth/domain/usecases/get_utilisateur_connecte_usecase.dart';
+import 'package:mon_projet_nfc/features/auth/domain/repositories/auth_repository.dart';
+
+class MockAuthRepository implements AuthRepository {
+  @override
+  Future<Utilisateur> login(String email, String motDePasse) async {
+    return const Utilisateur(id: '1', email: 'a@a.com', estConnecte: true);
+  }
+
+  @override
+  Future<void> logout() async {}
+
+  @override
+  Future<Utilisateur?> getUtilisateurConnecte() async => null;
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('NfcCashApp smoke test', (WidgetTester tester) async {
+    final repository = MockAuthRepository();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => AuthProvider(
+          loginUseCase: LoginUseCase(repository),
+          logoutUseCase: LogoutUseCase(repository),
+          getUtilisateurConnecteUseCase: GetUtilisateurConnecteUseCase(repository),
+        )..checkSession(),
+        child: const NfcCashApp(),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // L'application doit démarrer en affichant l'indicateur ou l'icône de splash
+    expect(find.byIcon(Icons.nfc_rounded), findsOneWidget);
+    await tester.pumpAndSettle();
   });
 }

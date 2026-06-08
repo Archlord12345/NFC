@@ -72,6 +72,18 @@ class DatabaseHelper {
         FOREIGN KEY (wallet_dest_id) REFERENCES wallets(id)
       )
     ''');
+
+    // Insertion d'un utilisateur de test (alex@example.com / password123)
+    // SHA-256 de 'password123' = ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f
+    await db.rawInsert('''
+      INSERT INTO utilisateurs (id, email, mot_de_passe_hash, est_connecte)
+      VALUES ('user-001', 'alex@example.com', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 0)
+    ''');
+
+    await db.rawInsert('''
+      INSERT INTO wallets (id, utilisateur_id, solde, devise)
+      VALUES ('wallet-001', 'user-001', 2450.50, 'EUR')
+    ''');
   }
 
   /// Supprime et recrée la base (utile en développement).
