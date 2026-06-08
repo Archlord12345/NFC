@@ -1,0 +1,30 @@
+on:
+    push:
+        branches:
+            - main
+jobs:
+    build-apk:
+        runs-on: ubuntu-latest
+        steps:
+            - name : recuperer le code depuis github
+              uses: actions/checkout@v4
+            - name : configurer java pour android(java 17)
+              uses: actions/setup-java@v4
+              with:
+                  java-version: 17
+                  distribution: 'zulu'
+                  cache: 'gradle'
+            - name : configurer flutter 
+              uses: subosito/flutter-action@v2
+              with:
+                  channel: 'stable'
+                  cache: true
+            - name : recuperer les dependances 
+              run: flutter pub get 
+            - name : compiler l'app android
+              run: flutter build apk --release
+            - name : upload artefact 
+              uses: actions/upload-artifact@v4
+              with:
+                  name: app-release
+                  path: build/app/outputs/flutter-apk/app-release.apk
