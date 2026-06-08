@@ -1,0 +1,30 @@
+name: nfc_coin_transfer
+description: Application de transfert de monnaie via NFC - Tâche 5 (Data & Historique)
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Base de données locale
+  sqflite: ^2.3.3
+  path: ^1.9.0
+
+  # Gestion d'état
+  provider: ^6.1.2
+
+  # Utilitaires
+  uuid: ^4.4.0
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
