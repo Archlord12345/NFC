@@ -3,15 +3,14 @@ import 'package:path/path.dart';
 
 /// Helper Sqflite — Singleton de la base de données.
 ///
-/// Gère l'initialisation, la création des tables et l'accès
-/// à l'instance unique de [Database].
-///
-/// Utilisation :
-/// ```dart
-/// final db = await DatabaseHelper.instance.database;
-/// ```
+/// Responsable de :
+/// - L'ouverture / création du fichier `.db`
+/// - La création du schéma (3 tables : utilisateurs, wallets, transactions)
+/// - L'injection de données de démo au premier lancement
 class DatabaseHelper {
   DatabaseHelper._();
+
+  /// Instance unique (singleton).
   static final DatabaseHelper instance = DatabaseHelper._();
 
   static const String _databaseName = 'nfc_cash.db';
@@ -82,8 +81,22 @@ class DatabaseHelper {
 
     await db.rawInsert('''
       INSERT INTO wallets (id, utilisateur_id, solde, devise)
-      VALUES ('wallet-001', 'user-001', 2450.50, 'EUR')
+      VALUES ('wallet-001', 'user-001', 2450.50, 'XAF')
     ''');
+  }
+
+  /// Retourne l'ID de l'utilisateur actuellement connecté.
+  /// Retourne null si aucun utilisateur n'est connecté.
+  Future<String?> getConnectedUserId() async {
+    final db = await database;
+    final rows = await db.query(
+      'utilisateurs',
+      columns: ['id'],
+      where: 'est_connecte = 1',
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return rows.first['id'] as String;
   }
 
   /// Supprime et recrée la base (utile en développement).

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mon_projet_nfc/core/constants/app_colors.dart';
 import 'package:provider/provider.dart';
+import 'core/constants/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'core/database/database_helper.dart';
 import 'core/navigation/main_shell.dart';
@@ -13,6 +13,12 @@ import 'features/auth/presentation/providers/auth_provider.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/nfc/presentation/pages/nfc_scan_page.dart';
 import 'features/nfc/presentation/pages/nfc_receipt_page.dart';
+import 'features/wallet/data/datasources/wallet_local_datasource.dart';
+import 'features/wallet/data/repositories/wallet_repository_impl.dart';
+import 'features/wallet/domain/usecases/get_historique_usecase.dart';
+import 'features/wallet/domain/usecases/get_wallet_usecase.dart';
+import 'features/wallet/domain/usecases/recharger_usecase.dart';
+import 'features/wallet/presentation/providers/wallet_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,14 +30,29 @@ void main() async {
   final authDataSource = AuthLocalDataSource(db);
   final authRepository = AuthRepositoryImpl(authDataSource);
 
+  // Construire la chaîne de dépendances (wallet)
+  final walletLocalDataSource = WalletLocalDataSource(db);
+  final walletRepository = WalletRepositoryImpl(walletLocalDataSource);
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AuthProvider(
-        loginUseCase: LoginUseCase(authRepository),
-        logoutUseCase: LogoutUseCase(authRepository),
-        getUtilisateurConnecteUseCase:
-            GetUtilisateurConnecteUseCase(authRepository),
-      )..checkSession(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(
+            loginUseCase: LoginUseCase(authRepository),
+            logoutUseCase: LogoutUseCase(authRepository),
+            getUtilisateurConnecteUseCase:
+                GetUtilisateurConnecteUseCase(authRepository),
+          )..checkSession(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => WalletProvider(
+            getWallet: GetWalletUseCase(walletRepository),
+            getHistorique: GetHistoriqueUseCase(walletRepository),
+            recharger: RechargerUseCase(walletRepository),
+          ),
+        ),
+      ],
       child: const NfcCashApp(),
     ),
   );

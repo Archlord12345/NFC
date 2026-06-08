@@ -48,3 +48,12 @@ class NfcException implements Exception {
   @override
   String toString() => 'NfcException: $message';
 }
+
+/// Exception levée lors de la validation d'un formulaire ou d'un montant.
+class ValidationException implements Exception {
+  final String message;
+  const ValidationException(this.message);
+
+  @override
+  String toString() => 'ValidationException: $message';
+}
