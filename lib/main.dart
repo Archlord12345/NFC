@@ -137,7 +137,7 @@ class NfcCashApp extends StatelessWidget {
 
 /// Écran de chargement affiché pendant la vérification de session.
 class _SplashScreen extends StatelessWidget {
-  const _SplashScreen({super.key});
+  const _SplashScreen();
 
   @override
   Widget build(BuildContext context) {

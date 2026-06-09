@@ -26,6 +26,15 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NFCReaderUsageDescription</key>
+	<string>Cette application utilise le NFC pour permettre les transferts de fonds sécurisés entre utilisateurs.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Cette application utilise Face ID pour sécuriser l'accès à votre portefeuille.</string>
+	<key>com.apple.developer.nfc.readersession.formats</key>
+	<array>
+		<string>NDEF</string>
+		<string>TAG</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

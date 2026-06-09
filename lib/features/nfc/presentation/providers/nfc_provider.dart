@@ -1,24 +1,10 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:nfc_manager/nfc_manager.dart';
-import 'package:nfc_manager_ndef/nfc_manager_ndef.dart';
-import 'package:ndef_record/ndef_record.dart' as ndef_record;
-
-// Platform-specific NDEF handling imports
-
+import 'package:nfc_manager/platform_tags.dart';
 
 enum NfcSessionStatus { idle, scanning, processing, success, error }
 
-/**
- * Represents a transfer token containing payment information.
- *
- * Fields:
- * - amount: The monetary amount to transfer.
- * - currency: Currency code (e.g., 'USD', 'EUR').
- * - senderWalletId: Identifier of the sender's wallet.
- * - timestamp: ISO‑8601 timestamp generated when the token is created.
- */
 class TransferToken {
   final String amount;
   final String currency;
@@ -50,12 +36,10 @@ class NfcProvider extends ChangeNotifier {
 
   bool get isScanning => _status == NfcSessionStatus.scanning;
 
-  Ndef? _getNdef(NfcTag tag) => Ndef.from(tag);
-
   Future<void> startReading() async {
     bool isAvailable = await NfcManager.instance.isAvailable();
     if (!isAvailable) {
-      _errorMessage = 'NFC is not available';
+      _errorMessage = 'NFC non disponible';
       _status = NfcSessionStatus.error;
       notifyListeners();
       return;
@@ -73,54 +57,50 @@ class NfcProvider extends ChangeNotifier {
           notifyListeners();
 
           try {
-            final ndef = _getNdef(tag);
+            final ndef = Ndef.from(tag);
             if (ndef == null) {
-              _errorMessage = 'Tag is not NDEF compatible';
+              _errorMessage = 'Tag non compatible NDEF';
               _status = NfcSessionStatus.error;
-              await NfcManager.instance.stopSession();
             } else {
               final message = await ndef.read();
-              if (message?.records.isEmpty ?? true) {
-                _errorMessage = 'Empty NFC tag';
+              if (message == null || message.records.isEmpty) {
+                _errorMessage = 'Tag NFC vide';
                 _status = NfcSessionStatus.error;
               } else {
-                final payload = message!.records.first.payload;
+                final payload = message.records.first.payload;
+                // Le premier octet d'un enregistrement texte est souvent la langue, on cherche le JSON
                 String decoded = utf8.decode(payload);
-                
                 final jsonStart = decoded.indexOf('{');
                 final jsonEnd = decoded.lastIndexOf('}');
+                
                 if (jsonStart != -1 && jsonEnd != -1) {
                   _lastReadData = jsonDecode(decoded.substring(jsonStart, jsonEnd + 1));
                   _status = NfcSessionStatus.success;
                 } else {
-                  _errorMessage = 'Invalid data';
+                  _errorMessage = 'Format de données invalide';
                   _status = NfcSessionStatus.error;
                 }
               }
-              await NfcManager.instance.stopSession();
             }
           } catch (e) {
-            _errorMessage = 'Read error: $e';
+            _errorMessage = 'Erreur de lecture: $e';
             _status = NfcSessionStatus.error;
-            await NfcManager.instance.stopSession();
           }
+          await NfcManager.instance.stopSession();
           notifyListeners();
         },
       );
     } catch (e) {
-      _errorMessage = 'Session error: $e';
+      _errorMessage = 'Erreur de session: $e';
       _status = NfcSessionStatus.error;
       notifyListeners();
     }
   }
 
-  /// Starts a write session to send a [TransferToken] to an NFC tag.
-  /// The token is encoded as a JSON payload inside an NDEF record.
-  /// The method ensures the tag is writable and handles errors gracefully.
   Future<void> startWriting(TransferToken token) async {
     bool isAvailable = await NfcManager.instance.isAvailable();
     if (!isAvailable) {
-      _errorMessage = 'NFC is not available';
+      _errorMessage = 'NFC non disponible';
       _status = NfcSessionStatus.error;
       notifyListeners();
       return;
@@ -137,40 +117,37 @@ class NfcProvider extends ChangeNotifier {
           _status = NfcSessionStatus.processing;
           notifyListeners();
           try {
-            final ndef = _getNdef(tag);
+            final ndef = Ndef.from(tag);
             if (ndef == null || !ndef.isWritable) {
-              _errorMessage = 'Tag not writable';
+              _errorMessage = 'Tag non inscriptible';
               _status = NfcSessionStatus.error;
-              await NfcManager.instance.stopSession();
             } else {
-              final record = ndef_record.NdefRecord(
-                typeNameFormat: ndef_record.TypeNameFormat.wellKnown,
-                type: Uint8List.fromList([0x54]),
-                identifier: Uint8List(0),
-                payload: Uint8List.fromList(utf8.encode(jsonEncode(token.toJson()))),
-              );
-              final message = ndef_record.NdefMessage(records: [record]);
+              final jsonString = jsonEncode(token.toJson());
+              final message = ndef_manager.NdefMessage([
+                ndef_manager.NdefRecord.createText(jsonString),
+              ]);
               await ndef.write(message);
               _status = NfcSessionStatus.success;
-              await NfcManager.instance.stopSession();
             }
           } catch (e) {
-            _errorMessage = 'Write error: $e';
+            _errorMessage = 'Erreur d\'écriture: $e';
             _status = NfcSessionStatus.error;
-            await NfcManager.instance.stopSession();
           }
+          await NfcManager.instance.stopSession();
           notifyListeners();
         },
       );
     } catch (e) {
-      _errorMessage = 'Session error: $e';
+      _errorMessage = 'Erreur de session: $e';
       _status = NfcSessionStatus.error;
       notifyListeners();
     }
   }
 
   Future<void> stopSession() async {
-    await NfcManager.instance.stopSession();
+    try {
+      await NfcManager.instance.stopSession();
+    } catch (_) {}
     _status = NfcSessionStatus.idle;
     notifyListeners();
   }
