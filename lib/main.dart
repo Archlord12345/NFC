@@ -146,7 +146,7 @@ class _SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.nfc_rounded, size: 64, color: AppColors.accent),
+            Image.asset('assets/images/logo.png', width: 120),
             SizedBox(height: 16),
             CircularProgressIndicator(color: AppColors.accent),
           ],

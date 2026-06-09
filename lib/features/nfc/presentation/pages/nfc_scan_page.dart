@@ -105,11 +105,15 @@ class _NfcScanPageState extends State<NfcScanPage>
     }
 
     setState(() => _isWritingMode = true);
-    context.read<NfcProvider>().startWriting({
-      'senderWalletId': wallet.id,
-      'amount': amount,
-      'currency': wallet.devise,
-    });
+    
+    // Création du token
+    final token = TransferToken(
+      amount: amount.toString(),
+      currency: wallet.devise,
+      senderWalletId: wallet.id,
+    );
+    
+    context.read<NfcProvider>().startWriting(token);
   }
 
   void _showSnackBar(String message) {
@@ -146,8 +150,8 @@ class _NfcScanPageState extends State<NfcScanPage>
     if (nfcProvider.status == NfcSessionStatus.success) {
       if (widget.mode == NfcMode.receive && nfcProvider.lastReadData != null) {
         final data = nfcProvider.lastReadData!;
-        final amount = (data['amount'] as num).toDouble();
-        final senderId = data['senderWalletId'] as String;
+        final amount = double.parse(data['amount'].toString());
+        final senderId = data['sender'] as String;
 
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           final success = await walletProvider.transfertNfc(
