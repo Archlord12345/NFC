@@ -18,6 +18,7 @@ dependencies:
   nfc_manager: ^4.2.1
   flutter_nfc_kit: ^3.6.2
   nfc_manager_ndef: ^1.1.0
+  ndef_record: ^1.4.2
   local_auth: ^2.1.8
 
   # ── Base de données ──
@@ -51,7 +52,17 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_native_splash: ^2.3.5
 flutter:
   uses-material-design: true
   assets:
     - assets/images/logo.png
+    - assets/images/splash.png
+
+flutter_native_splash:
+  color: "#121212"
+  image: assets/images/splash.png
+  android_12:
+    image: assets/images/splash.png
+    icon_background_color: "#121212"
+  fullscreen: true

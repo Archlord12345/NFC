@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 import 'package:nfc_manager_ndef/nfc_manager_ndef.dart';
+import 'package:ndef_record/ndef_record.dart' as ndef_record;
 
 // Platform-specific NDEF handling imports
 
@@ -79,11 +80,11 @@ class NfcProvider extends ChangeNotifier {
               await NfcManager.instance.stopSession();
             } else {
               final message = await ndef.read();
-              if (message.records.isEmpty) {
+              if (message?.records.isEmpty ?? true) {
                 _errorMessage = 'Empty NFC tag';
                 _status = NfcSessionStatus.error;
               } else {
-                final payload = message.records.first.payload;
+                final payload = message!.records.first.payload;
                 String decoded = utf8.decode(payload);
                 
                 final jsonStart = decoded.indexOf('{');
@@ -142,13 +143,13 @@ class NfcProvider extends ChangeNotifier {
               _status = NfcSessionStatus.error;
               await NfcManager.instance.stopSession();
             } else {
-              final record = NdefRecord(
-                typeNameFormat: NdefTypeNameFormat.wellKnown,
+              final record = ndef_record.NdefRecord(
+                typeNameFormat: ndef_record.TypeNameFormat.wellKnown,
                 type: Uint8List.fromList([0x54]),
                 identifier: Uint8List(0),
                 payload: Uint8List.fromList(utf8.encode(jsonEncode(token.toJson()))),
               );
-              final message = NdefMessage([record]);
+              final message = ndef_record.NdefMessage(records: [record]);
               await ndef.write(message);
               _status = NfcSessionStatus.success;
               await NfcManager.instance.stopSession();

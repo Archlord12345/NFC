@@ -88,7 +88,7 @@ class NfcCashApp extends StatelessWidget {
           // Pendant le chargement initial
           if (auth.status == AuthStatus.initial ||
               auth.status == AuthStatus.loading) {
-            return const _SplashScreen();
+            return _SplashScreen();
           }
           // Si authentifié → shell principal
           if (auth.isAuthenticated) {
@@ -137,7 +137,7 @@ class NfcCashApp extends StatelessWidget {
 
 /// Écran de chargement affiché pendant la vérification de session.
 class _SplashScreen extends StatelessWidget {
-  _SplashScreen();
+  const _SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
