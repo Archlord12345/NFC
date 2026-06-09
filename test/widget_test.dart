@@ -37,8 +37,13 @@ void main() {
       ),
     );
 
-    // L'application doit démarrer en affichant l'indicateur ou l'icône de splash
-    expect(find.byIcon(Icons.nfc_rounded), findsOneWidget);
+    // Au début on devrait voir le splash screen (loading)
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    // Attendre que la session soit vérifiée et que l'on arrive sur la page de login
     await tester.pumpAndSettle();
+
+    // La page de login contient l'icône nfc_rounded
+    expect(find.byIcon(Icons.nfc_rounded), findsOneWidget);
   });
 }
