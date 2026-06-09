@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:nfc_manager/nfc_manager.dart';
-// No separate import needed; NdefRecord is provided by nfc_manager
+import 'package:nfc_manager_ndef/nfc_manager_ndef.dart';
 
 // Platform-specific NDEF handling imports
 
@@ -113,11 +113,10 @@ class NfcProvider extends ChangeNotifier {
     }
   }
 
-    /**
-   * Starts a write session to send a [TransferToken] to an NFC tag.
-   * The token is encoded as a JSON payload inside an NDEF record.
-   * The method ensures the tag is writable and handles errors gracefully.
-   */
+  /// Starts a write session to send a [TransferToken] to an NFC tag.
+  /// The token is encoded as a JSON payload inside an NDEF record.
+  /// The method ensures the tag is writable and handles errors gracefully.
+  Future<void> startWriting(TransferToken token) async {
     bool isAvailable = await NfcManager.instance.isAvailable();
     if (!isAvailable) {
       _errorMessage = 'NFC is not available';
@@ -136,7 +135,6 @@ class NfcProvider extends ChangeNotifier {
         onDiscovered: (NfcTag tag) async {
           _status = NfcSessionStatus.processing;
           notifyListeners();
-
           try {
             final ndef = _getNdef(tag);
             if (ndef == null || !ndef.isWritable) {
@@ -150,9 +148,8 @@ class NfcProvider extends ChangeNotifier {
                 identifier: Uint8List(0),
                 payload: Uint8List.fromList(utf8.encode(jsonEncode(token.toJson()))),
               );
-                // Create NdefMessage with the record
-                final message = NdefMessage([record]);
-                await ndef.write(message);
+              final message = NdefMessage([record]);
+              await ndef.write(message);
               _status = NfcSessionStatus.success;
               await NfcManager.instance.stopSession();
             }
