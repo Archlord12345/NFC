@@ -21,7 +21,7 @@ jobs:
           cache: 'gradle'
 
       - name: Install Pandoc
-        run: sudo apt-get update && sudo apt-get install -y pandoc texlive-latex-base
+        run: sudo apt-get update && sudo apt-get install -y pandoc texlive-latex-base texlive-fonts-recommended texlive-latex-extra texlive-xetex
 
       - name: Generate Documentation PDF
         run: pandoc README.md -o documentation.pdf
