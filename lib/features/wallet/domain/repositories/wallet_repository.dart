@@ -16,4 +16,13 @@ abstract class WalletRepository {
   /// Recharge le wallet [walletId] du montant [montant]
   /// et enregistre une transaction de type RECHARGE.
   Future<void> recharger(String walletId, double montant);
+
+  /// Effectue un transfert NFC (envoi ou réception).
+  /// [isEnvoi] indique si on retire de l'argent (true) ou si on en reçoit (false).
+  Future<void> transfertNfc({
+    required String walletId,
+    required double montant,
+    required bool isEnvoi,
+    String? peerWalletId,
+  });
 }

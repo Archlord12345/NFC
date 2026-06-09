@@ -50,4 +50,28 @@ class WalletRepositoryImpl implements WalletRepository {
       throw UnexpectedFailure('$e');
     }
   }
+
+  @override
+  Future<void> transfertNfc({
+    required String walletId,
+    required double montant,
+    required bool isEnvoi,
+    String? peerWalletId,
+  }) async {
+    try {
+      await localDataSource.updateSolde(
+        walletId: walletId,
+        montant: isEnvoi ? -montant : montant,
+        type: 'TRANSFERT_NFC',
+        walletSourceId: isEnvoi ? walletId : peerWalletId,
+        walletDestId: isEnvoi ? peerWalletId : walletId,
+      );
+    } on NotFoundException catch (e) {
+      throw WalletFailure(e.message);
+    } on DatabaseException catch (e) {
+      throw DatabaseFailure(e.message);
+    } catch (e) {
+      throw UnexpectedFailure('$e');
+    }
+  }
 }

@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:nfc_manager/nfc_manager.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../providers/nfc_provider.dart';
+import '../../../wallet/presentation/providers/wallet_provider.dart';
 
-/// Page de scan NFC — recherche des appareils à proximité.
+enum NfcMode { send, receive }
+
 class NfcScanPage extends StatefulWidget {
-  const NfcScanPage({super.key});
+  final NfcMode mode;
+  const NfcScanPage({super.key, this.mode = NfcMode.receive});
 
   @override
   State<NfcScanPage> createState() => _NfcScanPageState();
@@ -13,7 +21,10 @@ class _NfcScanPageState extends State<NfcScanPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
-  bool _isScanning = true;
+  final _amountController = TextEditingController();
+  final _auth = LocalAuthentication();
+  bool _isWritingMode = false;
+  bool _isNfcAvailable = true;
 
   @override
   void initState() {
@@ -25,150 +36,231 @@ class _NfcScanPageState extends State<NfcScanPage>
     _pulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) _showTransferDialog();
-    });
+
+    _checkNfcAvailability();
+  }
+
+  Future<void> _checkNfcAvailability() async {
+    final available = await NfcManager.instance.isAvailable();
+    setState(() => _isNfcAvailable = available);
+
+    if (available) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<NfcProvider>().reset();
+        if (widget.mode == NfcMode.receive) {
+          context.read<NfcProvider>().startReading();
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
+    _amountController.dispose();
     super.dispose();
   }
 
-  void _showTransferDialog() {
-    setState(() => _isScanning = false);
-    final amountCtrl = TextEditingController();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        final theme = Theme.of(ctx);
-        final isDark = theme.brightness == Brightness.dark;
-        return Container(
-          padding: EdgeInsets.fromLTRB(
-              24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40, height: 4,
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: AppColors.accent.withValues(alpha: 0.15),
-                child: const Icon(Icons.person,
-                    color: AppColors.accent, size: 28),
-              ),
-              const SizedBox(height: 12),
-              Text('Device Detected', style: theme.textTheme.titleLarge),
-              const SizedBox(height: 4),
-              Text('iPhone de Marc — NFC Ready',
-                  style: theme.textTheme.bodySmall),
-              const SizedBox(height: 20),
-              TextField(
-                controller: amountCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  hintText: 'Amount to send', prefixIcon: Icon(Icons.euro),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.of(ctx).pop();
-                      setState(() => _isScanning = true);
-                    },
-                    child: const Text('Decline'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(ctx).pop();
-                      Navigator.of(context).pushReplacementNamed(
-                        '/nfc-receipt',
-                        arguments: amountCtrl.text.isNotEmpty
-                            ? amountCtrl.text : '0.00',
-                      );
-                    },
-                    child: const Text('Send'),
-                  ),
-                ),
-              ]),
-            ],
+  Future<void> _onSharePressed() async {
+    final amount = _amountController.text;
+    final wallet = context.read<WalletProvider>().wallet;
+    
+    final message = 'Transférez-moi $amount ${wallet?.devise ?? 'XAF'} sur mon portefeuille ${wallet?.id}';
+    
+    await Share.share(message, subject: 'Transfert d\'argent');
+  }
+
+  Future<void> _onSendPressed() async {
+    final amount = double.tryParse(_amountController.text);
+    if (amount == null || amount <= 0) {
+      _showSnackBar('Please enter a valid amount');
+      return;
+    }
+
+    final wallet = context.read<WalletProvider>().wallet;
+    if (wallet == null) return;
+
+    if (amount > wallet.solde) {
+      _showSnackBar('Insufficient balance');
+      return;
+    }
+
+    try {
+      final canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
+      final canAuthenticate = canAuthenticateWithBiometrics || await _auth.isDeviceSupported();
+
+      if (canAuthenticate) {
+        final authenticated = await _auth.authenticate(
+          localizedReason: 'Please authenticate to confirm the transfer of ${amount.toStringAsFixed(2)} ${wallet.devise}',
+          options: const AuthenticationOptions(
+            stickyAuth: true,
+            biometricOnly: false,
           ),
         );
-      },
+
+        if (!authenticated) return;
+      }
+    } catch (e) {
+      debugPrint('Biometric auth error: $e');
+    }
+
+    setState(() => _isWritingMode = true);
+    context.read<NfcProvider>().startWriting({
+      'senderWalletId': wallet.id,
+      'amount': amount,
+      'currency': wallet.devise,
+    });
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final nfcProvider = context.watch<NfcProvider>();
+    final walletProvider = context.watch<WalletProvider>();
+
+    if (!_isNfcAvailable) {
+      return Scaffold(
+        appBar: AppBar(title: Text(widget.mode == NfcMode.send ? 'Share Request' : 'Receive')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.share, size: 64, color: AppColors.accent),
+              const SizedBox(height: 20),
+              const Text('NFC not available. Use system share.'),
+              const SizedBox(height: 20),
+              ElevatedButton(onPressed: _onSharePressed, child: const Text('Share Request'))
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Gestion automatique de la réussite du transfert
+    if (nfcProvider.status == NfcSessionStatus.success) {
+      if (widget.mode == NfcMode.receive && nfcProvider.lastReadData != null) {
+        final data = nfcProvider.lastReadData!;
+        final amount = (data['amount'] as num).toDouble();
+        final senderId = data['senderWalletId'] as String;
+
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          final success = await walletProvider.transfertNfc(
+            montant: amount,
+            isEnvoi: false,
+            peerWalletId: senderId,
+          );
+          if (mounted && success) {
+            Navigator.of(context).pushReplacementNamed('/nfc-receipt', arguments: amount.toStringAsFixed(2));
+          }
+        });
+      } else if (widget.mode == NfcMode.send && _isWritingMode) {
+        final amount = double.parse(_amountController.text);
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          final success = await walletProvider.transfertNfc(
+            montant: amount,
+            isEnvoi: true,
+            peerWalletId: 'NFC_PEER',
+          );
+          if (mounted && success) {
+            Navigator.of(context).pushReplacementNamed('/nfc-receipt', arguments: '-$amount');
+          }
+        });
+      }
+    }
+
     return Scaffold(
       backgroundColor: AppColors.primary,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
-        title: const Text('NFC Transfer'),
+        title: Text(widget.mode == NfcMode.send ? 'Send Money' : 'Receive Money'),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            context.read<NfcProvider>().stopSession();
+            Navigator.of(context).pop();
+          },
+        ),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedBuilder(
-              animation: _pulseAnimation,
-              builder: (context, child) {
-                return Transform.scale(
-                  scale: _isScanning ? _pulseAnimation.value : 1.0,
-                  child: Container(
-                    width: 120, height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.accent.withValues(alpha: 0.15),
-                      border: Border.all(
-                        color: AppColors.accent.withValues(alpha: 0.4),
-                        width: 2,
-                      ),
-                    ),
-                    child: Icon(
-                      _isScanning ? Icons.nfc_rounded : Icons.check_rounded,
-                      size: 48, color: AppColors.accent,
-                    ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (widget.mode == NfcMode.send && !_isWritingMode) ...[
+                Text(
+                  'Enter amount to send',
+                  style: theme.textTheme.headlineSmall?.copyWith(color: Colors.white),
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _amountController,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+                  decoration: const InputDecoration(
+                    hintText: '0.00',
+                    hintStyle: TextStyle(color: Colors.white38),
+                    border: InputBorder.none,
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 32),
-            Text(
-              _isScanning ? 'Searching for devices...' : 'Device Found!',
-              style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _isScanning
-                  ? 'Hold your phone near another\ndevice to transfer funds.'
-                  : 'Ready to transfer',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: Colors.white54),
-            ),
-          ],
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _onSendPressed,
+                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent),
+                    child: const Text('Start NFC Beam'),
+                  ),
+                ),
+              ] else ...[
+                AnimatedBuilder(
+                  animation: _pulseAnimation,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: nfcProvider.isScanning ? _pulseAnimation.value : 1.0,
+                      child: Container(
+                        width: 140, height: 140,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.accent.withValues(alpha: 0.15),
+                        ),
+                        child: Icon(
+                          nfcProvider.status == NfcSessionStatus.success
+                              ? Icons.check_rounded
+                              : Icons.nfc_rounded,
+                          size: 56, color: AppColors.accent,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 40),
+                Text(
+                  nfcProvider.status == NfcSessionStatus.error
+                      ? 'Error!'
+                      : (nfcProvider.status == NfcSessionStatus.success ? 'Success!' : 'Ready to Scan'),
+                  style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  nfcProvider.errorMessage ??
+                      (widget.mode == NfcMode.send
+                          ? 'Approach the devices to transfer ${_amountController.text} ${walletProvider.wallet?.devise}'
+                          : 'Hold your device near the sender\'s phone'),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

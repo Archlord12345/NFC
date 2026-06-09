@@ -5,27 +5,27 @@ import '../../domain/entities/wallet.dart';
 import '../../domain/usecases/get_historique_usecase.dart';
 import '../../domain/usecases/get_wallet_usecase.dart';
 import '../../domain/usecases/recharger_usecase.dart';
+import '../../domain/usecases/transfert_nfc_usecase.dart';
 
 /// États possibles du wallet.
 enum WalletStatus { initial, loading, loaded, error }
 
 /// State management du module Wallet.
-///
-/// Expose le wallet courant, l'historique de transactions,
-/// et les opérations de recharge.
-/// Doit être fourni via [ChangeNotifierProvider] dans le widget tree.
 class WalletProvider extends ChangeNotifier {
   final GetWalletUseCase _getWallet;
   final GetHistoriqueUseCase _getHistorique;
   final RechargerUseCase _recharger;
+  final TransfertNfcUseCase _transfertNfc;
 
   WalletProvider({
     required GetWalletUseCase getWallet,
     required GetHistoriqueUseCase getHistorique,
     required RechargerUseCase recharger,
+    required TransfertNfcUseCase transfertNfc,
   })  : _getWallet = getWallet,
         _getHistorique = getHistorique,
-        _recharger = recharger;
+        _recharger = recharger,
+        _transfertNfc = transfertNfc;
 
   // ─── État ─────────────────────────────────────────────────────────────────
 
@@ -44,13 +44,11 @@ class WalletProvider extends ChangeNotifier {
   bool get isRecharging => _isRecharging;
   bool get isLoaded => _status == WalletStatus.loaded;
 
-  /// Retourne les 5 dernières transactions (pour l'aperçu).
   List<TransactionEntity> get transactionsRecentes =>
       _transactions.take(5).toList();
 
   // ─── Actions ──────────────────────────────────────────────────────────────
 
-  /// WA-1 : Charge le wallet et l'historique de l'utilisateur [utilisateurId].
   Future<void> chargerWallet(String utilisateurId) async {
     _setStatus(WalletStatus.loading);
 
@@ -64,7 +62,6 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
-  /// WA-2 : Rafraîchit uniquement l'historique (sans recharger le wallet).
   Future<void> rafraichirHistorique() async {
     if (_wallet == null) return;
     try {
@@ -73,8 +70,6 @@ class WalletProvider extends ChangeNotifier {
     } catch (_) {}
   }
 
-  /// WA-3 : Recharge le wallet du [montant] donné.
-  /// Retourne `true` en cas de succès, `false` sinon.
   Future<bool> recharger(double montant) async {
     if (_wallet == null) return false;
 
@@ -85,7 +80,39 @@ class WalletProvider extends ChangeNotifier {
       await _recharger(
         RechargerParams(walletId: _wallet!.id, montant: montant),
       );
-      // Rafraîchissement du wallet et de l'historique après recharge
+      _wallet = await _getWallet(_wallet!.utilisateurId);
+      _transactions = await _getHistorique(_wallet!.id);
+      _isRecharging = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isRecharging = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// WA-4, WA-5 : Effectue un transfert NFC.
+  Future<bool> transfertNfc({
+    required double montant,
+    required bool isEnvoi,
+    String? peerWalletId,
+  }) async {
+    if (_wallet == null) return false;
+
+    _isRecharging = true;
+    notifyListeners();
+
+    try {
+      await _transfertNfc(
+        TransfertNfcParams(
+          walletId: _wallet!.id,
+          montant: montant,
+          isEnvoi: isEnvoi,
+          peerWalletId: peerWalletId,
+        ),
+      );
       _wallet = await _getWallet(_wallet!.utilisateurId);
       _transactions = await _getHistorique(_wallet!.id);
       _isRecharging = false;

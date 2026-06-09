@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../domain/entities/transaction_entity.dart';
+import '../../presentation/providers/wallet_provider.dart';
 
 /// Page d'historique des transactions.
 class HistoryPage extends StatelessWidget {
@@ -14,63 +17,51 @@ class HistoryPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('History'),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          // ── Section du jour ──
-          _SectionHeader(title: 'Today', theme: theme, isDark: isDark),
-          _HistoryTile(
-            icon: Icons.nfc_rounded,
-            title: 'NFC Transfer to Marc',
-            date: '10:32 AM',
-            amount: '-€25.00',
-            status: 'Completed',
-            statusColor: AppColors.accent,
-            isNegative: true,
-          ),
-          _HistoryTile(
-            icon: Icons.account_balance_wallet,
-            title: 'Wallet Recharge',
-            date: '08:15 AM',
-            amount: '+€100.00',
-            status: 'Completed',
-            statusColor: AppColors.accent,
-            isNegative: false,
-          ),
+      body: Consumer<WalletProvider>(
+        builder: (context, provider, _) {
+          if (provider.status == WalletStatus.loading && provider.transactions.isEmpty) {
+            return const Center(child: CircularProgressIndicator(color: AppColors.accent));
+          }
 
-          const SizedBox(height: 20),
-          _SectionHeader(title: 'Yesterday', theme: theme, isDark: isDark),
-          _HistoryTile(
-            icon: Icons.nfc_rounded,
-            title: 'NFC Transfer from Julie',
-            date: '04:20 PM',
-            amount: '+€50.00',
-            status: 'Completed',
-            statusColor: AppColors.accent,
-            isNegative: false,
-          ),
-          _HistoryTile(
-            icon: Icons.nfc_rounded,
-            title: 'NFC Transfer to Paul',
-            date: '02:10 PM',
-            amount: '-€15.00',
-            status: 'Failed',
-            statusColor: AppColors.error,
-            isNegative: true,
-          ),
+          if (provider.transactions.isEmpty) {
+            return const Center(
+              child: Text('No transactions found.'),
+            );
+          }
 
-          const SizedBox(height: 20),
-          _SectionHeader(title: 'This Week', theme: theme, isDark: isDark),
-          _HistoryTile(
-            icon: Icons.account_balance_wallet,
-            title: 'Wallet Recharge',
-            date: 'Mon, 09:00 AM',
-            amount: '+€200.00',
-            status: 'Completed',
-            statusColor: AppColors.accent,
-            isNegative: false,
-          ),
-        ],
+          // Grouper par date (simplifié : Today, Others)
+          final today = DateTime.now().toIso8601String().substring(0, 10);
+          final transactionsToday = provider.transactions
+              .where((tx) => tx.dateCree.startsWith(today))
+              .toList();
+          final transactionsOlder = provider.transactions
+              .where((tx) => !tx.dateCree.startsWith(today))
+              .toList();
+
+          return RefreshIndicator(
+            onRefresh: () => provider.rafraichirHistorique(),
+            child: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                if (transactionsToday.isNotEmpty) ...[
+                  _SectionHeader(title: 'Today', theme: theme, isDark: isDark),
+                  ...transactionsToday.map((tx) => _HistoryTile(
+                        transaction: tx,
+                        currentWalletId: provider.wallet?.id ?? '',
+                      )),
+                  const SizedBox(height: 20),
+                ],
+                if (transactionsOlder.isNotEmpty) ...[
+                  _SectionHeader(title: 'Older', theme: theme, isDark: isDark),
+                  ...transactionsOlder.map((tx) => _HistoryTile(
+                        transaction: tx,
+                        currentWalletId: provider.wallet?.id ?? '',
+                      )),
+                ],
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -104,28 +95,19 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _HistoryTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String date;
-  final String amount;
-  final String status;
-  final Color statusColor;
-  final bool isNegative;
+  final TransactionEntity transaction;
+  final String currentWalletId;
 
   const _HistoryTile({
-    required this.icon,
-    required this.title,
-    required this.date,
-    required this.amount,
-    required this.status,
-    required this.statusColor,
-    required this.isNegative,
+    required this.transaction,
+    required this.currentWalletId,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isEntree = transaction.estEntree(currentWalletId);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -138,18 +120,25 @@ class _HistoryTile extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 22,
-            backgroundColor: AppColors.accent.withValues(alpha: 0.1),
-            child: Icon(icon, color: AppColors.accent, size: 22),
+            backgroundColor: (isEntree ? AppColors.accent : AppColors.error).withValues(alpha: 0.1),
+            child: Icon(
+              transaction.type == 'RECHARGE' ? Icons.account_balance_wallet : Icons.nfc_rounded,
+              color: isEntree ? AppColors.accent : AppColors.error,
+              size: 22,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: theme.textTheme.titleSmall),
+                Text(
+                  transaction.type == 'RECHARGE' ? 'Wallet Recharge' : 'NFC Transfer',
+                  style: theme.textTheme.titleSmall,
+                ),
                 const SizedBox(height: 2),
                 Text(
-                  date,
+                  transaction.dateCree.substring(11, 16), // HH:mm
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: isDark
                         ? AppColors.textSecondaryDark
@@ -163,9 +152,9 @@ class _HistoryTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                amount,
+                '${isEntree ? '+' : '-'}${transaction.montant.toStringAsFixed(0)}',
                 style: theme.textTheme.titleSmall?.copyWith(
-                  color: isNegative ? AppColors.error : AppColors.accent,
+                  color: isEntree ? AppColors.accent : AppColors.error,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -177,15 +166,15 @@ class _HistoryTile extends StatelessWidget {
                     width: 6,
                     height: 6,
                     decoration: BoxDecoration(
-                      color: statusColor,
+                      color: transaction.statut == 1 ? AppColors.accent : AppColors.error,
                       shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    status,
+                    transaction.statut == 1 ? 'Completed' : 'Failed',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: statusColor,
+                      color: transaction.statut == 1 ? AppColors.accent : AppColors.error,
                       fontSize: 11,
                     ),
                   ),

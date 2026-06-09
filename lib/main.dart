@@ -18,7 +18,9 @@ import 'features/wallet/data/repositories/wallet_repository_impl.dart';
 import 'features/wallet/domain/usecases/get_historique_usecase.dart';
 import 'features/wallet/domain/usecases/get_wallet_usecase.dart';
 import 'features/wallet/domain/usecases/recharger_usecase.dart';
+import 'features/wallet/domain/usecases/transfert_nfc_usecase.dart';
 import 'features/wallet/presentation/providers/wallet_provider.dart';
+import 'features/nfc/presentation/providers/nfc_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +36,12 @@ void main() async {
   final walletLocalDataSource = WalletLocalDataSource(db);
   final walletRepository = WalletRepositoryImpl(walletLocalDataSource);
 
+  // Use cases
+  final getWalletUseCase = GetWalletUseCase(walletRepository);
+  final getHistoriqueUseCase = GetHistoriqueUseCase(walletRepository);
+  final rechargerUseCase = RechargerUseCase(walletRepository);
+  final transfertNfcUseCase = TransfertNfcUseCase(walletRepository);
+
   runApp(
     MultiProvider(
       providers: [
@@ -47,10 +55,14 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => WalletProvider(
-            getWallet: GetWalletUseCase(walletRepository),
-            getHistorique: GetHistoriqueUseCase(walletRepository),
-            recharger: RechargerUseCase(walletRepository),
+            getWallet: getWalletUseCase,
+            getHistorique: getHistoriqueUseCase,
+            recharger: rechargerUseCase,
+            transfertNfc: transfertNfcUseCase,
           ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => NfcProvider(),
         ),
       ],
       child: const NfcCashApp(),
@@ -104,8 +116,9 @@ class NfcCashApp extends StatelessWidget {
               builder: (_) => const LoginPage(),
             );
           case '/nfc-scan':
+            final mode = settings.arguments as NfcMode? ?? NfcMode.receive;
             return MaterialPageRoute(
-              builder: (_) => const NfcScanPage(),
+              builder: (_) => NfcScanPage(mode: mode),
             );
           case '/nfc-receipt':
             return MaterialPageRoute(

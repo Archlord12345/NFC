@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../domain/entities/transaction_entity.dart';
+import '../../presentation/providers/wallet_provider.dart';
+import '../../../../features/auth/presentation/providers/auth_provider.dart';
+import '../../../nfc/presentation/pages/nfc_scan_page.dart';
 
 /// Page du Dashboard Wallet (écran principal après connexion).
 ///
@@ -15,126 +20,147 @@ class WalletDashboardPage extends StatelessWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
+        child: Consumer2<AuthProvider, WalletProvider>(
+          builder: (context, auth, walletProv, _) {
+            if (walletProv.status == WalletStatus.loading && walletProv.wallet == null) {
+              return const Center(child: CircularProgressIndicator(color: AppColors.accent));
+            }
 
-              // ── Header ──
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Welcome, Alex',
-                        style: theme.textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Your NFC wallet is ready for transactions.',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: isDark
-                              ? AppColors.textSecondaryDark
-                              : AppColors.textSecondaryLight,
+            final user = auth.utilisateur;
+            final wallet = walletProv.wallet;
+
+            return RefreshIndicator(
+              onRefresh: () => walletProv.chargerWallet(user?.id ?? ''),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16),
+
+                    // ── Header ──
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Welcome, ${user?.email.split('@').first ?? 'User'}',
+                              style: theme.textTheme.titleLarge,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Your NFC wallet is ready for transactions.',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: AppColors.accent.withValues(alpha: 0.15),
-                    child: const Icon(
-                      Icons.notifications_outlined,
-                      color: AppColors.accent,
-                      size: 22,
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: AppColors.accent.withValues(alpha: 0.15),
+                          child: const Icon(
+                            Icons.notifications_outlined,
+                            color: AppColors.accent,
+                            size: 22,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-              // ── Carte Solde ──
-              _BalanceCard(theme: theme),
-              const SizedBox(height: 24),
-
-              // ── Actions rapides ──
-              Row(
-                children: [
-                  Expanded(
-                    child: _ActionButton(
-                      icon: Icons.account_balance_wallet_outlined,
-                      label: 'Recharge',
-                      onTap: () {
-                        _showRechargeDialog(context);
-                      },
+                    // ── Carte Solde ──
+                    _BalanceCard(
+                      theme: theme,
+                      solde: wallet?.solde ?? 0.0,
+                      devise: wallet?.devise ?? 'XAF',
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _ActionButton(
-                      icon: Icons.nfc_rounded,
-                      label: 'Send via NFC',
-                      isPrimary: true,
-                      onTap: () {
-                        Navigator.of(context).pushNamed('/nfc-scan');
-                      },
+                    const SizedBox(height: 24),
+
+                    // ── Actions rapides ──
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _ActionButton(
+                            icon: Icons.account_balance_wallet_outlined,
+                            label: 'Recharge',
+                            onTap: () {
+                              _showRechargeDialog(context, walletProv);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _ActionButton(
+                            icon: Icons.nfc_rounded,
+                            label: 'Send',
+                            isPrimary: true,
+                            onTap: () {
+                              Navigator.of(context).pushNamed('/nfc-scan', arguments: NfcMode.send);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _ActionButton(
+                            icon: Icons.download_rounded,
+                            label: 'Receive',
+                            onTap: () {
+                              Navigator.of(context).pushNamed('/nfc-scan', arguments: NfcMode.receive);
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
+                    const SizedBox(height: 32),
 
-              // ── Historique ──
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Recent Transactions',
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text('View All'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
+                    // ── Historique ──
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Recent Transactions',
+                          style: theme.textTheme.titleMedium,
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            // On pourrait naviguer vers l'onglet History si on avait accès au contrôleur
+                          },
+                          child: const Text('View All'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
 
-              // ── Liste de transactions (données statiques pour démo) ──
-              _TransactionTile(
-                icon: Icons.coffee,
-                title: 'Coffee Shop',
-                subtitle: 'NFC Payment • 10:32 AM',
-                amount: '-€4.50',
-                isNegative: true,
+                    if (walletProv.transactionsRecentes.isEmpty)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child: Text('No transactions yet.'),
+                        ),
+                      )
+                    else
+                      ...walletProv.transactionsRecentes.map((tx) => _TransactionTile(
+                            transaction: tx,
+                            currentWalletId: wallet?.id ?? '',
+                          )),
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
-              _TransactionTile(
-                icon: Icons.person,
-                title: 'Salary Credit',
-                subtitle: 'Bank Transfer • Yesterday',
-                amount: '+€1,500.00',
-                isNegative: false,
-              ),
-              _TransactionTile(
-                icon: Icons.shopping_bag_outlined,
-                title: 'Amazon Prime',
-                subtitle: 'Subscription • 3 days ago',
-                amount: '-€13.99',
-                isNegative: true,
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
   }
 
-  void _showRechargeDialog(BuildContext context) {
+  void _showRechargeDialog(BuildContext context, WalletProvider provider) {
     final controller = TextEditingController();
     showDialog(
       context: context,
@@ -144,8 +170,8 @@ class WalletDashboardPage extends StatelessWidget {
           controller: controller,
           keyboardType: TextInputType.number,
           decoration: const InputDecoration(
-            hintText: 'Montant (ex: 50.00)',
-            prefixIcon: Icon(Icons.euro),
+            hintText: 'Montant (ex: 5000)',
+            prefixIcon: Icon(Icons.add_card),
           ),
         ),
         actions: [
@@ -154,15 +180,21 @@ class WalletDashboardPage extends StatelessWidget {
             child: const Text('Annuler'),
           ),
           ElevatedButton(
-            onPressed: () {
-              // TODO: Appeler RechargeUseCase via WalletProvider
-              Navigator.of(ctx).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content:
-                      Text('Recharge de €${controller.text} effectuée !'),
-                ),
-              );
+            onPressed: () async {
+              final montant = double.tryParse(controller.text);
+              if (montant != null && montant > 0) {
+                final success = await provider.recharger(montant);
+                if (ctx.mounted) Navigator.of(ctx).pop();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(success
+                          ? 'Recharge de ${provider.wallet?.devise} $montant effectuée !'
+                          : 'Erreur lors de la recharge : ${provider.errorMessage}'),
+                    ),
+                  );
+                }
+              }
             },
             child: const Text('Confirmer'),
           ),
@@ -176,7 +208,14 @@ class WalletDashboardPage extends StatelessWidget {
 
 class _BalanceCard extends StatelessWidget {
   final ThemeData theme;
-  const _BalanceCard({required this.theme});
+  final double solde;
+  final String devise;
+
+  const _BalanceCard({
+    required this.theme,
+    required this.solde,
+    required this.devise,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -208,8 +247,7 @@ class _BalanceCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.accent.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
@@ -244,7 +282,7 @@ class _BalanceCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '2,450.50',
+                solde.toStringAsFixed(2),
                 style: theme.textTheme.headlineLarge?.copyWith(
                   color: Colors.white,
                   fontSize: 36,
@@ -255,7 +293,7 @@ class _BalanceCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Text(
-                  'EUR',
+                  devise,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: Colors.white54,
                     fontWeight: FontWeight.w500,
@@ -269,11 +307,9 @@ class _BalanceCard extends StatelessWidget {
             children: [
               const Icon(Icons.arrow_upward, color: AppColors.accent, size: 16),
               const SizedBox(width: 4),
-              Text(
-                '+12.5% this month',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.accent,
-                ),
+              const Text(
+                'Balance up to date',
+                style: TextStyle(color: AppColors.accent, fontSize: 12),
               ),
             ],
           ),
@@ -338,24 +374,19 @@ class _ActionButton extends StatelessWidget {
 }
 
 class _TransactionTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String amount;
-  final bool isNegative;
+  final TransactionEntity transaction;
+  final String currentWalletId;
 
   const _TransactionTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.amount,
-    required this.isNegative,
+    required this.transaction,
+    required this.currentWalletId,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isEntree = transaction.estEntree(currentWalletId);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -368,18 +399,25 @@ class _TransactionTile extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 22,
-            backgroundColor: AppColors.accent.withValues(alpha: 0.1),
-            child: Icon(icon, color: AppColors.accent, size: 22),
+            backgroundColor: (isEntree ? AppColors.accent : AppColors.error).withValues(alpha: 0.1),
+            child: Icon(
+              transaction.type == 'RECHARGE' ? Icons.account_balance_wallet : Icons.nfc_rounded,
+              color: isEntree ? AppColors.accent : AppColors.error,
+              size: 22,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: theme.textTheme.titleSmall),
+                Text(
+                  transaction.type == 'RECHARGE' ? 'Recharge' : 'NFC Transfer',
+                  style: theme.textTheme.titleSmall,
+                ),
                 const SizedBox(height: 2),
                 Text(
-                  subtitle,
+                  transaction.dateCree.substring(0, 16).replaceAll('T', ' '),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: isDark
                         ? AppColors.textSecondaryDark
@@ -390,9 +428,9 @@ class _TransactionTile extends StatelessWidget {
             ),
           ),
           Text(
-            amount,
+            '${isEntree ? '+' : '-'}${transaction.montant.toStringAsFixed(0)}',
             style: theme.textTheme.titleSmall?.copyWith(
-              color: isNegative ? AppColors.error : AppColors.accent,
+              color: isEntree ? AppColors.accent : AppColors.error,
               fontWeight: FontWeight.w700,
             ),
           ),

@@ -54,37 +54,69 @@ class WalletLocalDataSource {
     }
   }
 
-  // ─────────────────────────── Recharge ──────────────────────────────────────
+  // ─────────────────────────── Recharge / Transfert ─────────────────────────
 
-  /// Met à jour le solde et crée une ligne RECHARGE dans les transactions.
-  /// Exécuté dans une transaction SQLite atomique.
-  Future<void> recharger(String walletId, double montant) async {
+  /// Met à jour le solde et crée une ligne de transaction.
+  /// [type] peut être 'RECHARGE' ou 'TRANSFERT_NFC'.
+  Future<void> updateSolde({
+    required String walletId,
+    required double montant,
+    required String type,
+    String? walletSourceId,
+    String? walletDestId,
+  }) async {
     try {
       await database.transaction((txn) async {
-        // 1. Mise à jour du solde
+        // 1. Vérification du solde si c'est un retrait (montant négatif)
+        if (montant < 0) {
+          final rows = await txn.query(
+            'wallets',
+            columns: ['solde'],
+            where: 'id = ?',
+            whereArgs: [walletId],
+          );
+          if (rows.isEmpty) throw const NotFoundException('Wallet introuvable.');
+          final currentSolde = rows.first['solde'] as double;
+          if (currentSolde + montant < 0) {
+            throw const DatabaseException('Solde insuffisant pour cette opération.');
+          }
+        }
+
+        // 2. Mise à jour du solde
         final updated = await txn.rawUpdate(
           'UPDATE wallets SET solde = solde + ? WHERE id = ?',
           [montant, walletId],
         );
         if (updated == 0) {
-          throw const NotFoundException('Wallet introuvable pour la recharge.');
+          throw const NotFoundException('Wallet introuvable.');
         }
 
-        // 2. Création de la transaction RECHARGE
+        // 3. Création de la transaction
         await txn.insert('transactions', {
           'id': _uuid.v4(),
-          'wallet_source_id': null,
-          'wallet_dest_id': walletId,
-          'type': 'RECHARGE',
-          'montant': montant,
+          'wallet_source_id': walletSourceId,
+          'wallet_dest_id': walletDestId ?? walletId,
+          'type': type,
+          'montant': montant < 0 ? -montant : montant,
           'statut': 1, // Validé directement
           'date_cree': DateTime.now().toIso8601String(),
         });
       });
     } on NotFoundException {
       rethrow;
+    } on DatabaseException {
+      rethrow;
     } catch (e) {
-      throw DatabaseException('Erreur lors de la recharge : $e');
+      throw DatabaseException('Erreur lors de la mise à jour du solde : $e');
     }
+  }
+
+  /// Alias pour la recharge simple (gardé pour compatibilité si besoin).
+  Future<void> recharger(String walletId, double montant) async {
+    return updateSolde(
+      walletId: walletId,
+      montant: montant,
+      type: 'RECHARGE',
+    );
   }
 }
