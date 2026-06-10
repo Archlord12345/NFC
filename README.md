@@ -53,6 +53,7 @@ Le développement a été ponctué de défis majeurs que l'équipe a dû surmont
 - **Migration AGP :** Adaptation aux nouvelles exigences d'Android Gradle Plugin (9.0+) et migration vers le mécanisme de "Built-in Kotlin".
 - **API Breaking Changes :** Mise à jour vers `local_auth` v3.0+ nécessitant une refonte de l'appel à l'API d'authentification biométrique (`authenticate` sans `AuthenticationOptions`).
 - **Pipeline CI/CD :** Complexité de configuration d'un émulateur Android "léger" (headless) au sein de GitHub Actions pour l'automatisation des captures d'écran.
+- **Desugaring :** Résolution de l'erreur `checkReleaseAarMetadata` nécessitant l'activation du "core library desugaring" pour la compatibilité avec les API Java modernes.
 
 ---
 
