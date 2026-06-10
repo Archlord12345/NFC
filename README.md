@@ -21,7 +21,7 @@ Le projet a été réalisé par une équipe de **5 personnes**, avec une répart
 Le développement s'est étalé sur une période intense de **3 semaines** :
 - **Semaine 1 :** Analyse des besoins, conception de l'architecture et mise en place de l'environnement.
 - **Semaine 2 :** Implémentation des services de transfert (NFC, Bluetooth, Nearby) et logique métier.
-- **Semaine 3 :** Développement de l'UI (Système Solaire), résolution des contraintes techniques, implémentation de la biométrie, du système de facturation PDF, notifications et tests finaux.
+- **Semaine 3 :** Développement de l'UI (Système Solaire), résolution des contraintes techniques, implémentation de la biométrie, du système de facturation PDF, notifications, tests d'intégration automatisés et finalisation du rapport.
 
 ---
 
@@ -36,6 +36,7 @@ L'application repose sur un écosystème robuste et moderne :
 | **Persistance** | SQLite (sqflite) |
 | **Connectivité** | NFC, Flutter Blue Plus, Nearby Connections |
 | **Utilitaires** | PDF Generation, Notification, Share Plus |
+| **Automatisation** | Integration Test, GitHub Actions |
 | **Outils de Build** | Gradle (Kotlin DSL), Pandoc |
 
 ---
@@ -44,12 +45,13 @@ L'application repose sur un écosystème robuste et moderne :
 Le développement a été ponctué de défis majeurs que l'équipe a dû surmonter dans un délai restreint :
 - **Gestion du temps :** Réaliser l'ensemble des fonctionnalités en seulement 3 semaines a nécessité une organisation rigoureuse.
 - **Disponibilité du matériel :** L'accès limité aux équipements physiques (plusieurs téléphones équipés de NFC/Bluetooth) a rendu les tests de connectivité complexes.
-- **Erreurs de syntaxe YAML :** Résolution de clés en double dans `pubspec.yaml` (conflits de dépendances).
+- **Erreurs de syntaxe YAML :** Résolution de clés en double dans `pubspec.yaml` (conflits de dépendances lors des mises à jour).
 - **Compilation :** Erreurs liées à des importations manquantes (`material.dart`) dans certaines pages.
 - **Contraintes LaTeX :** Difficultés lors de la génération automatique de la documentation PDF (Pandoc) dues à l'incompatibilité des caractères spéciaux et des émojis.
 - **Robustesse du scan :** Gestion des interférences en cas de proximité de plusieurs appareils (résolu par l'interface "Système Solaire").
 - **Migration AGP :** Adaptation aux nouvelles exigences d'Android Gradle Plugin (9.0+) et migration vers le mécanisme de "Built-in Kotlin".
 - **API Breaking Changes :** Mise à jour vers `local_auth` v3.0+ nécessitant une refonte de l'appel à l'API d'authentification biométrique (`authenticate` sans `AuthenticationOptions`).
+- **Pipeline CI/CD :** Complexité de configuration d'un émulateur Android "léger" (headless) au sein de GitHub Actions pour l'automatisation des captures d'écran.
 
 ---
 
@@ -64,6 +66,7 @@ Le développement a été ponctué de défis majeurs que l'équipe a dû surmont
 - **Biométrie :** Authentification sécurisée via empreinte digitale ou reconnaissance faciale.
 - **Notifications :** Feedback temps réel pour toutes les transactions (recharges, envois, réceptions).
 - **Facturation PDF :** Génération automatique de factures téléchargeables pour chaque transaction.
+- **Automatisation QA :** Framework de tests d'intégration pour la capture automatisée d'écrans dans le CI.
 
 ### 4.3. Interface Utilisateur (UI)
 - **Hub Portefeuille :** Tableau de bord complet.
