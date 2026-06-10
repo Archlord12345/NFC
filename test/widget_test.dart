@@ -8,18 +8,28 @@ import 'package:mon_projet_nfc/features/auth/domain/usecases/login_usecase.dart'
 import 'package:mon_projet_nfc/features/auth/domain/usecases/register_usecase.dart';
 import 'package:mon_projet_nfc/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:mon_projet_nfc/features/auth/domain/usecases/get_utilisateur_connecte_usecase.dart';
+import 'package:mon_projet_nfc/features/auth/domain/usecases/login_with_biometrics_usecase.dart';
+import 'package:mon_projet_nfc/features/auth/domain/usecases/update_profile_usecase.dart';
 import 'package:mon_projet_nfc/features/auth/domain/repositories/auth_repository.dart';
 
 class MockAuthRepository implements AuthRepository {
   @override
   Future<Utilisateur> login(String email, String motDePasse) async {
-    return const Utilisateur(id: '1', email: 'a@a.com', estConnecte: true);
+    return const Utilisateur(id: '1', email: 'a@a.com', firstname: 'Test', lastname: 'User', estConnecte: true);
   }
 
   @override
-  Future<Utilisateur> register(String email, String motDePasse) async {
-    return const Utilisateur(id: '1', email: 'a@a.com', estConnecte: true);
+  Future<Utilisateur> register(String email, String motDePasse, String firstname, String lastname) async {
+    return const Utilisateur(id: '1', email: 'a@a.com', firstname: 'Test', lastname: 'User', estConnecte: true);
   }
+
+  @override
+  Future<Utilisateur> loginWithBiometrics() async {
+    return const Utilisateur(id: '1', email: 'a@a.com', firstname: 'Test', lastname: 'User', estConnecte: true);
+  }
+
+  @override
+  Future<void> updateProfile(String id, String firstname, String lastname) async {}
 
   @override
   Future<void> logout() async {}
@@ -39,6 +49,8 @@ void main() {
           registerUseCase: RegisterUseCase(repository),
           logoutUseCase: LogoutUseCase(repository),
           getUtilisateurConnecteUseCase: GetUtilisateurConnecteUseCase(repository),
+          loginWithBiometricsUseCase: LoginWithBiometricsUseCase(repository),
+          updateProfileUseCase: UpdateProfileUseCase(repository),
         )..checkSession(),
         child: const NfcCashApp(),
       ),

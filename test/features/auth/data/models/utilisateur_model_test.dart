@@ -6,6 +6,8 @@ void main() {
     const tModel = UtilisateurModel(
       id: 'user-001',
       email: 'test@example.com',
+      firstname: 'John',
+      lastname: 'Doe',
       estConnecte: true,
       motDePasseHash: 'abc123hash',
     );
@@ -13,6 +15,8 @@ void main() {
     final tMap = {
       'id': 'user-001',
       'email': 'test@example.com',
+      'firstname': 'John',
+      'lastname': 'Doe',
       'mot_de_passe_hash': 'abc123hash',
       'est_connecte': 1,
     };
@@ -27,6 +31,8 @@ void main() {
 
         expect(result.id, 'user-001');
         expect(result.email, 'test@example.com');
+        expect(result.firstname, 'John');
+        expect(result.lastname, 'Doe');
         expect(result.estConnecte, true);
         expect(result.motDePasseHash, 'abc123hash');
       });
@@ -35,6 +41,8 @@ void main() {
         final mapDeconnecte = {
           'id': 'user-002',
           'email': 'other@example.com',
+          'firstname': 'Jane',
+          'lastname': 'Doe',
           'mot_de_passe_hash': 'xyz789',
           'est_connecte': 0,
         };
@@ -50,6 +58,8 @@ void main() {
 
         expect(result['id'], 'user-001');
         expect(result['email'], 'test@example.com');
+        expect(result['firstname'], 'John');
+        expect(result['lastname'], 'Doe');
         expect(result['mot_de_passe_hash'], 'abc123hash');
         expect(result['est_connecte'], 1);
       });
@@ -58,6 +68,8 @@ void main() {
         const modelDeconnecte = UtilisateurModel(
           id: 'user-003',
           email: 'off@example.com',
+          firstname: 'Jane',
+          lastname: 'Doe',
           estConnecte: false,
           motDePasseHash: 'hash000',
         );

@@ -5,6 +5,8 @@ import 'package:mon_projet_nfc/features/auth/domain/usecases/login_usecase.dart'
 import 'package:mon_projet_nfc/features/auth/domain/usecases/register_usecase.dart';
 import 'package:mon_projet_nfc/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:mon_projet_nfc/features/auth/domain/usecases/get_utilisateur_connecte_usecase.dart';
+import 'package:mon_projet_nfc/features/auth/domain/usecases/login_with_biometrics_usecase.dart';
+import 'package:mon_projet_nfc/features/auth/domain/usecases/update_profile_usecase.dart';
 import 'package:mon_projet_nfc/features/auth/presentation/providers/auth_provider.dart';
 
 /// Mock manuel du AuthRepository pour tester le provider.
@@ -24,11 +26,21 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<Utilisateur> register(String email, String motDePasse) async {
+  Future<Utilisateur> register(String email, String motDePasse, String firstname, String lastname) async {
     if (registerException != null) throw registerException!;
     return registerResult!;
   }
 
+  @override
+  Future<Utilisateur> loginWithBiometrics() async {
+    if (loginException != null) throw loginException!;
+    return loginResult ?? const Utilisateur(id: '1', email: 'bio@bio.com', firstname: 'Bio', lastname: 'Bio', estConnecte: true);
+  }
+
+  @override
+  Future<void> updateProfile(String id, String firstname, String lastname) async {
+    // mock update
+  }
   @override
   Future<void> logout() async {
     if (logoutException != null) throw logoutException!;
@@ -53,12 +65,16 @@ void main() {
       logoutUseCase: LogoutUseCase(mockRepository),
       getUtilisateurConnecteUseCase:
           GetUtilisateurConnecteUseCase(mockRepository),
+      loginWithBiometricsUseCase: LoginWithBiometricsUseCase(mockRepository),
+      updateProfileUseCase: UpdateProfileUseCase(mockRepository),
     );
   });
 
   const tUtilisateur = Utilisateur(
     id: 'user-001',
     email: 'test@example.com',
+    firstname: 'John',
+    lastname: 'Doe',
     estConnecte: true,
   );
 
@@ -98,7 +114,7 @@ void main() {
     test('devrait passer à authenticated après une inscription réussie', () async {
       mockRepository.registerResult = tUtilisateur;
 
-      await provider.register('test@example.com', 'password123');
+      await provider.register('test@example.com', 'password123', 'John', 'Doe');
 
       expect(provider.status, AuthStatus.authenticated);
       expect(provider.utilisateur, isNotNull);
@@ -109,7 +125,7 @@ void main() {
     test('devrait passer à error après une inscription échouée', () async {
       mockRepository.registerException = Exception('Email already used');
 
-      await provider.register('existing@example.com', 'password123');
+      await provider.register('existing@example.com', 'password123', 'John', 'Doe');
 
       expect(provider.status, AuthStatus.error);
       expect(provider.errorMessage, isNotNull);
