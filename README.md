@@ -59,7 +59,7 @@ Le développement a été ponctué de défis majeurs que l'équipe a dû surmont
 - **Robustesse du scan :** Gestion des interférences en cas de proximité de plusieurs appareils (résolu par l'interface "Système Solaire").
 - **Migration AGP :** Adaptation aux nouvelles exigences d'Android Gradle Plugin (9.0+) et migration vers le mécanisme de "Built-in Kotlin".
 - **API Breaking Changes :** Mise à jour vers `local_auth` v3.0+ nécessitant une refonte de l'appel à l'API d'authentification biométrique (`authenticate` sans `AuthenticationOptions`).
-- **Pipeline CI/CD :** Complexité de configuration d'un émulateur Android "léger" (headless) au sein de GitHub Actions pour l'automatisation des captures d'écran.
+- **Automatisation CI/CD (Émulateur) :** La capture d'écran automatisée via émulateur Android dans le pipeline CI/CD a été désactivée en raison de l'instabilité chronique et des limites de ressources (timeouts) des environnements d'émulation dans les runners GitHub Actions. La validation visuelle doit être effectuée sur des terminaux physiques.
 - **Desugaring :** Résolution de l'erreur `checkReleaseAarMetadata` nécessitant l'activation du "core library desugaring" pour la compatibilité avec les API Java modernes.
 
 ---
