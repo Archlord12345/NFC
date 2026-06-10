@@ -30,7 +30,7 @@ class _LoginPageState extends State<LoginPage> {
       try {
         final bool didAuthenticate = await auth.authenticate(
           localizedReason: 'Please authenticate to log in',
-          options: const AuthenticationOptions(biometricOnly: false),
+          options: AuthenticationOptions(biometricOnly: false),
         );
         
         if (didAuthenticate) {
