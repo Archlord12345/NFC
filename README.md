@@ -4,7 +4,7 @@ author: "Équipe de développement - Projet UE ICT218"
 date: "Juin 2026"
 ---
 
-<img src="assets/images/logo.png" width="200">
+![Logo](assets/images/logo.png)
 
 # 1. Présentation du Projet
 La **VAULT Wallet Application** est une solution mobile innovante développée pour faciliter les transactions financières sécurisées via des protocoles sans contact. Ce projet a été réalisé dans le cadre de l'unité d'enseignement **ICT218**.
@@ -21,7 +21,7 @@ Le projet a été réalisé par une équipe de **5 personnes**, avec une répart
 Le développement s'est étalé sur une période intense de **3 semaines** :
 - **Semaine 1 :** Analyse des besoins, conception de l'architecture et mise en place de l'environnement.
 - **Semaine 2 :** Implémentation des services de transfert (NFC, Bluetooth, Nearby) et logique métier.
-- **Semaine 3 :** Développement de l'UI (Système Solaire), résolution des contraintes techniques, implémentation de la biométrie, du système de facturation PDF, notifications, tests d'intégration automatisés et finalisation du rapport.
+- **Semaine 3 :** Développement de l'UI (Système Solaire), résolution des contraintes techniques, implémentation de la biométrie, du système de facturation PDF, notifications, tests d'intégration automatisés, optimisation du pipeline CI et finalisation du rapport.
 
 ---
 
@@ -45,6 +45,7 @@ L'application repose sur un écosystème robuste et moderne :
 Pour garantir la fiabilité de l'application tout en respectant les limites des environnements CI/CD (GitHub Actions), nous avons adopté une double approche :
 - **Mocking pour CI/CD :** Implémentation d'un `MockTransferService` permettant de tester l'UI et le flux de navigation sans nécessiter de matériel NFC/Bluetooth ni de multiples émulateurs simultanés.
 - **Tests physiques :** La validation finale du protocole de transfert est effectuée sur des terminaux physiques réels pour garantir la compatibilité matérielle réelle.
+- **Automatisation QA :** Utilisation du framework `integration_test` pour automatiser la capture d'écran des interfaces principales à chaque déploiement.
 
 ---
 
@@ -61,6 +62,7 @@ Le développement a été ponctué de défis majeurs que l'équipe a dû surmont
 - **API Breaking Changes :** Mise à jour vers `local_auth` v3.0+ nécessitant une refonte de l'appel à l'API d'authentification biométrique (`authenticate` sans `AuthenticationOptions`).
 - **Pipeline CI/CD :** Complexité de configuration d'un émulateur Android "léger" (headless) au sein de GitHub Actions pour l'automatisation des captures d'écran.
 - **Desugaring :** Résolution de l'erreur `checkReleaseAarMetadata` nécessitant l'activation du "core library desugaring" pour la compatibilité avec les API Java modernes.
+- **Cache CI/CD :** Problèmes d'interfaces obsolètes dans les builds automatisés, résolus par l'ajout systématique de `flutter clean` avant chaque build.
 
 ---
 
@@ -75,7 +77,7 @@ Le développement a été ponctué de défis majeurs que l'équipe a dû surmont
 - **Biométrie :** Authentification sécurisée via empreinte digitale ou reconnaissance faciale (implémentation v3.0+).
 - **Notifications :** Feedback temps réel pour toutes les transactions (recharges, envois, réceptions).
 - **Facturation PDF :** Génération automatique de factures téléchargeables pour chaque transaction.
-- **Automatisation QA :** Framework de tests d'intégration avec capture automatisée d'écrans lors des builds CI.
+- **Automatisation QA :** Framework de tests d'intégration avec capture automatisée d'écrans dans le CI.
 
 ### 5.3. Interface Utilisateur (UI)
 - **Hub Portefeuille :** Tableau de bord complet.
