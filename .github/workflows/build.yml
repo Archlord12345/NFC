@@ -27,7 +27,6 @@ jobs:
         run: flutter test
 
   build-apk:
-    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -57,7 +56,6 @@ jobs:
           retention-days: 7
 
   build-aab:
-    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
