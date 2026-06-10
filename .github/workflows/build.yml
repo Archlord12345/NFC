@@ -19,6 +19,8 @@ jobs:
         with:
           channel: 'stable'
           cache: true
+      - name: Clean
+        run: flutter clean
       - name: Get dependencies
         run: flutter pub get
       - name: Run tests
@@ -41,6 +43,8 @@ jobs:
         with:
           channel: 'stable'
           cache: true
+      - name: Clean
+        run: flutter clean
       - name: Get dependencies
         run: flutter pub get
       - name: Build APK
@@ -69,6 +73,8 @@ jobs:
         with:
           channel: 'stable'
           cache: true
+      - name: Clean
+        run: flutter clean
       - name: Get dependencies
         run: flutter pub get
       - name: Build App Bundle (AAB)
@@ -123,6 +129,8 @@ jobs:
         with:
           channel: 'stable'
           cache: true
+      - name: Clean
+        run: flutter clean
       - name: Setup Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -130,7 +138,6 @@ jobs:
           target: default
           arch: x86
           force-avd-creation: false
-          # Configuration "léger" pour CI
           emulator-options: -no-snapshot -no-window -no-boot-anim -no-audio -gpu swiftshader_indirect -memory 1536
           script: |
             flutter drive --driver=test_driver/integration_test.dart --target=integration_test/screenshot_test.dart
