@@ -19,6 +19,63 @@ class _ProfilePageState extends State<ProfilePage> {
     debugPrint('ProfilePage: Chargement de la page Profil');
   }
 
+  void _showEditProfileDialog(BuildContext context, AuthProvider auth) {
+    final user = auth.utilisateur;
+    if (user == null) return;
+
+    final firstnameController = TextEditingController(text: user.firstname);
+    final lastnameController = TextEditingController(text: user.lastname);
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Edit Profile'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: firstnameController,
+                  decoration: const InputDecoration(labelText: 'First Name'),
+                  validator: (val) =>
+                      (val == null || val.isEmpty) ? 'Required' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: lastnameController,
+                  decoration: const InputDecoration(labelText: 'Last Name'),
+                  validator: (val) =>
+                      (val == null || val.isEmpty) ? 'Required' : null,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (formKey.currentState?.validate() ?? false) {
+                  auth.updateProfile(
+                    firstnameController.text.trim(),
+                    lastnameController.text.trim(),
+                  );
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -45,7 +102,9 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 16),
               Center(
                 child: Text(
-                  user?.email.split('@').first.toUpperCase() ?? 'ALEX JOHNSON',
+                  user != null 
+                      ? '${user.firstname} ${user.lastname}'.toUpperCase()
+                      : 'ALEX JOHNSON',
                   style: theme.textTheme.titleLarge,
                 ),
               ),
@@ -66,7 +125,7 @@ class _ProfilePageState extends State<ProfilePage> {
               _ProfileTile(
                 icon: Icons.person_outline,
                 title: 'Edit Profile',
-                onTap: () {},
+                onTap: () => _showEditProfileDialog(context, auth),
               ),
               _ProfileTile(
                 icon: Icons.security,

@@ -9,6 +9,8 @@ class UtilisateurModel extends Utilisateur {
   const UtilisateurModel({
     required super.id,
     required super.email,
+    required super.firstname,
+    required super.lastname,
     required super.estConnecte,
     required this.motDePasseHash,
   });
@@ -18,6 +20,8 @@ class UtilisateurModel extends Utilisateur {
     return UtilisateurModel(
       id: map['id'] as String,
       email: map['email'] as String,
+      firstname: map['firstname'] as String,
+      lastname: map['lastname'] as String,
       estConnecte: (map['est_connecte'] as int) == 1,
       motDePasseHash: map['mot_de_passe_hash'] as String,
     );
@@ -28,6 +32,8 @@ class UtilisateurModel extends Utilisateur {
     return {
       'id': id,
       'email': email,
+      'firstname': firstname,
+      'lastname': lastname,
       'mot_de_passe_hash': motDePasseHash,
       'est_connecte': estConnecte ? 1 : 0,
     };

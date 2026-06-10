@@ -42,13 +42,15 @@ class AuthLocalDataSource {
     return UtilisateurModel(
       id: user.id,
       email: user.email,
+      firstname: user.firstname,
+      lastname: user.lastname,
       estConnecte: true,
       motDePasseHash: user.motDePasseHash,
     );
   }
 
   /// Inscrit un nouvel utilisateur et lui crée un wallet.
-  Future<UtilisateurModel> register(String email, String motDePasseHash) async {
+  Future<UtilisateurModel> register(String email, String motDePasseHash, String firstname, String lastname) async {
     // Vérifier si l'email existe déjà
     final existing = await database.query(
       'utilisateurs',
@@ -68,6 +70,8 @@ class AuthLocalDataSource {
       await txn.insert('utilisateurs', {
         'id': userId,
         'email': email,
+        'firstname': firstname,
+        'lastname': lastname,
         'mot_de_passe_hash': motDePasseHash,
         'est_connecte': 1,
       });
@@ -83,6 +87,8 @@ class AuthLocalDataSource {
       return UtilisateurModel(
         id: userId,
         email: email,
+        firstname: firstname,
+        lastname: lastname,
         estConnecte: true,
         motDePasseHash: motDePasseHash,
       );
@@ -110,5 +116,49 @@ class AuthLocalDataSource {
 
     if (result.isEmpty) return null;
     return UtilisateurModel.fromMap(result.first);
+  }
+
+  /// Met à jour le profil de l'utilisateur
+  Future<void> updateProfile(String id, String firstname, String lastname) async {
+    await database.update(
+      'utilisateurs',
+      {
+        'firstname': firstname,
+        'lastname': lastname,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Connecte le dernier utilisateur connu via biométrie
+  Future<UtilisateurModel> loginWithBiometrics() async {
+    // On prend le premier utilisateur disponible sur cet appareil (souvent unique pour une app perso locale)
+    final result = await database.query(
+      'utilisateurs',
+      limit: 1,
+    );
+
+    if (result.isEmpty) {
+      throw const AuthException('Aucun compte existant pour la biométrie');
+    }
+
+    final user = UtilisateurModel.fromMap(result.first);
+
+    await database.update(
+      'utilisateurs',
+      {'est_connecte': 1},
+      where: 'id = ?',
+      whereArgs: [user.id],
+    );
+
+    return UtilisateurModel(
+      id: user.id,
+      email: user.email,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      estConnecte: true,
+      motDePasseHash: user.motDePasseHash,
+    );
   }
 }

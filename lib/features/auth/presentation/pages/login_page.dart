@@ -17,6 +17,8 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _motDePasseController = TextEditingController();
+  final _firstnameController = TextEditingController();
+  final _lastnameController = TextEditingController();
   bool _obscureMotDePasse = true;
   bool _isRegisterMode = false;
 
@@ -35,10 +37,8 @@ class _LoginPageState extends State<LoginPage> {
         
         if (didAuthenticate) {
           // Perform login logic here
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Authentication successful')),
-          );
-          // Redirect to home/dashboard
+          final auth = context.read<AuthProvider>();
+          await auth.loginWithBiometrics();
         }
       } on PlatformException catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -60,6 +60,8 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     _emailController.dispose();
     _motDePasseController.dispose();
+    _firstnameController.dispose();
+    _lastnameController.dispose();
     super.dispose();
   }
 
@@ -81,7 +83,9 @@ class _LoginPageState extends State<LoginPage> {
       final password = _motDePasseController.text;
 
       if (_isRegisterMode) {
-        auth.register(email, password);
+        final firstname = _firstnameController.text.trim();
+        final lastname = _lastnameController.text.trim();
+        auth.register(email, password, firstname, lastname);
       } else {
         auth.login(email, password);
       }
@@ -156,6 +160,36 @@ class _LoginPageState extends State<LoginPage> {
                           ),
 
                         // ── Champ Email ──
+                        if (_isRegisterMode) ...[
+                          TextFormField(
+                            controller: _firstnameController,
+                            decoration: const InputDecoration(
+                              hintText: 'First Name',
+                              prefixIcon: Icon(Icons.person_outline),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your first name';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _lastnameController,
+                            decoration: const InputDecoration(
+                              hintText: 'Last Name',
+                              prefixIcon: Icon(Icons.person_outline),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your last name';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                        ],
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,

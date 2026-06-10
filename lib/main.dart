@@ -11,6 +11,8 @@ import 'features/auth/domain/usecases/login_usecase.dart';
 import 'features/auth/domain/usecases/register_usecase.dart';
 import 'features/auth/domain/usecases/logout_usecase.dart';
 import 'features/auth/domain/usecases/get_utilisateur_connecte_usecase.dart';
+import 'features/auth/domain/usecases/login_with_biometrics_usecase.dart';
+import 'features/auth/domain/usecases/update_profile_usecase.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/nfc/presentation/pages/nfc_scan_page.dart';
@@ -56,6 +58,9 @@ void main() async {
             logoutUseCase: LogoutUseCase(authRepository),
             getUtilisateurConnecteUseCase:
                 GetUtilisateurConnecteUseCase(authRepository),
+            loginWithBiometricsUseCase:
+                LoginWithBiometricsUseCase(authRepository),
+            updateProfileUseCase: UpdateProfileUseCase(authRepository),
           )..checkSession(),
         ),
         ChangeNotifierProvider(

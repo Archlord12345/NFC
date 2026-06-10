@@ -7,8 +7,8 @@ class RegisterUseCase {
 
   const RegisterUseCase(this.repository);
 
-  /// Exécute l'inscription avec [email] et [motDePasse].
-  Future<Utilisateur> call(String email, String motDePasse) {
-    return repository.register(email, motDePasse);
+  /// Exécute l'inscription avec [email], [motDePasse], [firstname] et [lastname].
+  Future<Utilisateur> call(String email, String motDePasse, String firstname, String lastname) {
+    return repository.register(email, motDePasse, firstname, lastname);
   }
 }

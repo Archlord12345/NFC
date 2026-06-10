@@ -1,4 +1,4 @@
-import '../../../core/transfer/i_transfer_service.dart';
+import '../../../../core/transfer/i_transfer_service.dart';
 
 /// Implémentation fictive pour les tests unitaires et d'intégration
 class MockTransferService implements ITransferService {

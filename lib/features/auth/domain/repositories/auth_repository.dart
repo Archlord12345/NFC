@@ -10,7 +10,7 @@ abstract class AuthRepository {
   Future<Utilisateur> login(String email, String motDePasse);
 
   /// Inscrit un nouvel utilisateur.
-  Future<Utilisateur> register(String email, String motDePasse);
+  Future<Utilisateur> register(String email, String motDePasse, String firstname, String lastname);
 
   /// Déconnecte l'utilisateur courant.
   Future<void> logout();
@@ -18,4 +18,10 @@ abstract class AuthRepository {
   /// Vérifie si un utilisateur est actuellement connecté.
   /// Retourne l'[Utilisateur] connecté ou `null`.
   Future<Utilisateur?> getUtilisateurConnecte();
+
+  /// Connecte via l'authentification biométrique
+  Future<Utilisateur> loginWithBiometrics();
+
+  /// Met à jour le profil de l'utilisateur
+  Future<void> updateProfile(String id, String firstname, String lastname);
 }

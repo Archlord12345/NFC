@@ -5,11 +5,15 @@
 class Utilisateur {
   final String id;
   final String email;
+  final String firstname;
+  final String lastname;
   final bool estConnecte;
 
   const Utilisateur({
     required this.id,
     required this.email,
+    required this.firstname,
+    required this.lastname,
     required this.estConnecte,
   });
 }

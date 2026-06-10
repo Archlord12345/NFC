@@ -20,9 +20,9 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Utilisateur> register(String email, String motDePasse) async {
+  Future<Utilisateur> register(String email, String motDePasse, String firstname, String lastname) async {
     final hash = sha256.convert(utf8.encode(motDePasse)).toString();
-    return await localDataSource.register(email, hash);
+    return await localDataSource.register(email, hash, firstname, lastname);
   }
 
   @override
@@ -36,5 +36,15 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Utilisateur?> getUtilisateurConnecte() {
     return localDataSource.getUtilisateurConnecte();
+  }
+
+  @override
+  Future<Utilisateur> loginWithBiometrics() async {
+    return await localDataSource.loginWithBiometrics();
+  }
+
+  @override
+  Future<void> updateProfile(String id, String firstname, String lastname) async {
+    await localDataSource.updateProfile(id, firstname, lastname);
   }
 }
