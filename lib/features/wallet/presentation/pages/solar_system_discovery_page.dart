@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import '../../../core/transfer/i_transfer_service.dart';
 
 class SolarSystemDiscoveryPage extends StatefulWidget {
-  const SolarSystemDiscoveryPage({super.key});
+  final ITransferService transferService;
+  final double amount;
+
+  const SolarSystemDiscoveryPage({
+    super.key,
+    required this.transferService,
+    required this.amount,
+  });
 
   @override
   State<SolarSystemDiscoveryPage> createState() => _SolarSystemDiscoveryPageState();
@@ -10,17 +18,29 @@ class SolarSystemDiscoveryPage extends StatefulWidget {
 
 class _SolarSystemDiscoveryPageState extends State<SolarSystemDiscoveryPage> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  // Mock devices for demonstration
   final List<String> _peers = ['Device A', 'Device B', 'Device C'];
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this, duration: const Duration(seconds: 10))..repeat();
+    _startDiscovery();
+  }
+
+  Future<void> _startDiscovery() async {
+    if (await widget.transferService.requestPermissions()) {
+      await widget.transferService.startDiscovery();
+    }
+  }
+
+  void _onPeerTap(String peerId) {
+    widget.transferService.sendData(peerId: peerId, amount: widget.amount);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Envoi à $peerId...')));
   }
 
   @override
   void dispose() {
+    widget.transferService.stopDiscovery();
     _controller.dispose();
     super.dispose();
   }
@@ -33,9 +53,15 @@ class _SolarSystemDiscoveryPageState extends State<SolarSystemDiscoveryPage> wit
         child: AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
-            return CustomPaint(
-              painter: SolarSystemPainter(_controller.value, _peers),
-              size: const Size(300, 300),
+            return GestureDetector(
+              onTapUp: (details) {
+                // Simplified tap detection logic to simulate selecting an orbiting peer
+                _onPeerTap(_peers.first);
+              },
+              child: CustomPaint(
+                painter: SolarSystemPainter(_controller.value, _peers),
+                size: const Size(300, 300),
+              ),
             );
           },
         ),
@@ -43,6 +69,7 @@ class _SolarSystemDiscoveryPageState extends State<SolarSystemDiscoveryPage> wit
     );
   }
 }
+// ... (SolarSystemPainter remains unchanged)
 
 class SolarSystemPainter extends CustomPainter {
   final double animationValue;
