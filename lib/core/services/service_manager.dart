@@ -1,19 +1,40 @@
+import 'dart:io';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class ServiceManager {
   
   static Future<bool> ensureBluetoothEnabled() async {
-    // Check permission
-    if (await Permission.bluetooth.isDenied || await Permission.bluetoothConnect.isDenied) {
-      await [Permission.bluetooth, Permission.bluetoothConnect, Permission.bluetoothScan].request();
+    // 1. Demander les permissions selon la version Android
+    Map<Permission, PermissionStatus> statuses = {};
+    
+    if (Platform.isAndroid) {
+      if (await Permission.bluetooth.isGranted && 
+          await Permission.bluetoothScan.isGranted && 
+          await Permission.bluetoothConnect.isGranted &&
+          await Permission.location.isGranted) {
+        // Déjà tout bon
+      } else {
+        statuses = await [
+          Permission.bluetooth,
+          Permission.bluetoothScan,
+          Permission.bluetoothConnect,
+          Permission.bluetoothAdvertise,
+          Permission.location,
+        ].request();
+      }
     }
 
-    // Check adapter state
+    // Vérifier si toutes les permissions nécessaires sont accordées
+    if (statuses.values.any((status) => status.isDenied || status.isPermanentlyDenied)) {
+      return false;
+    }
+
+    // 2. Activer le Bluetooth si possible
     if (await FlutterBluePlus.adapterState.first == BluetoothAdapterState.off) {
-      // In FlutterBluePlus, we can't directly turn it on programmatically on all platforms
-      // but we can prompt the user to enable it.
-      // This is a common limitation for privacy/security reasons.
+      // Sur Android, on peut demander d'activer le Bluetooth via l'API, 
+      // mais FlutterBluePlus ne le permet pas directement sans intents natifs.
+      // On retourne false pour que la UI puisse afficher un message.
       return false;
     }
     return true;
