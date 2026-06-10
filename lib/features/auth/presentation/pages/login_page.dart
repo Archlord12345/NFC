@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -39,6 +40,13 @@ class _LoginPageState extends State<LoginPage> {
           );
           // Redirect to home/dashboard
         }
+import 'package:flutter/services.dart'; // Add this
+import 'package:local_auth/local_auth.dart';
+// ...
+      } on PlatformException catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Biometric error: ${e.code} - ${e.message}')),
+        );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Biometric error: $e')),
