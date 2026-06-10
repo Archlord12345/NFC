@@ -41,7 +41,14 @@ L'application repose sur un écosystème robuste et moderne :
 
 ---
 
-# 3. Contraintes Techniques & Défis rencontrés
+# 3. Stratégie de Test
+Pour garantir la fiabilité de l'application tout en respectant les limites des environnements CI/CD (GitHub Actions), nous avons adopté une double approche :
+- **Mocking pour CI/CD :** Implémentation d'un `MockTransferService` permettant de tester l'UI et le flux de navigation sans nécessiter de matériel NFC/Bluetooth ni de multiples émulateurs simultanés.
+- **Tests physiques :** La validation finale du protocole de transfert est effectuée sur des terminaux physiques réels pour garantir la compatibilité matérielle réelle.
+
+---
+
+# 4. Contraintes Techniques & Défis rencontrés
 Le développement a été ponctué de défis majeurs que l'équipe a dû surmonter dans un délai restreint :
 - **Gestion du temps :** Réaliser l'ensemble des fonctionnalités en seulement 3 semaines a nécessité une organisation rigoureuse.
 - **Disponibilité du matériel :** L'accès limité aux équipements physiques (plusieurs téléphones équipés de NFC/Bluetooth) a rendu les tests de connectivité complexes.
@@ -57,25 +64,25 @@ Le développement a été ponctué de défis majeurs que l'équipe a dû surmont
 
 ---
 
-# 4. Fonctionnalités Implémentées
+# 5. Fonctionnalités Implémentées
 
-### 4.1. Système de transfert & Connectivité
+### 5.1. Système de transfert & Connectivité
 - **Multi-méthode :** NFC, Bluetooth et Quick Share (implémentation P2P fonctionnelle).
 - **Interface Système Solaire :** Scan visuel intuitif permettant de sélectionner un destinataire unique parmi plusieurs appareils.
 - **ServiceManager :** Gestion proactive de l'activation matérielle (Bluetooth/NFC).
 
-### 4.2. Sécurité & User Experience
+### 5.2. Sécurité & User Experience
 - **Biométrie :** Authentification sécurisée via empreinte digitale ou reconnaissance faciale (implémentation v3.0+).
 - **Notifications :** Feedback temps réel pour toutes les transactions (recharges, envois, réceptions).
 - **Facturation PDF :** Génération automatique de factures téléchargeables pour chaque transaction.
 - **Automatisation QA :** Framework de tests d'intégration avec capture automatisée d'écrans lors des builds CI.
 
-### 4.3. Interface Utilisateur (UI)
+### 5.3. Interface Utilisateur (UI)
 - **Hub Portefeuille :** Tableau de bord complet.
 - **Paramètres :** Gestion granulaire des méthodes de transfert.
 - **Historique :** Suivi détaillé des transactions.
 
 ---
 
-# 5. Conclusion
+# 6. Conclusion
 Le projet **NFC Wallet** est une réussite technique. En 3 semaines, l'équipe a su implémenter une solution complexe tout en respectant une architecture de qualité. Ce travail valide les acquis de l'UE ICT218 et démontre une maîtrise de l'écosystème Flutter et des interactions matérielles. L'application est aujourd'hui fonctionnelle, sécurisée, documentée et prête pour une utilisation avancée.
