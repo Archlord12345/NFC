@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import '../../../../core/transfer/i_transfer_service.dart';
 import '../../../../core/services/service_manager.dart';
@@ -22,8 +23,14 @@ class BluetoothTransferService implements ITransferService {
 
   @override
   Future<void> startDiscovery() async {
-    // Start scanning for devices
-    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 15));
+    debugPrint('BluetoothTransferService: Demarrage du scan...');
+    // S'assurer que l'adaptateur est allumé avant de scanner
+    if (await FlutterBluePlus.adapterState.first == BluetoothAdapterState.on) {
+      await FlutterBluePlus.startScan(timeout: const Duration(seconds: 15));
+      debugPrint('BluetoothTransferService: Scan lance avec succes.');
+    } else {
+      debugPrint('BluetoothTransferService: Impossible de scanner, adaptateur Bluetooth eteint.');
+    }
   }
 
   @override

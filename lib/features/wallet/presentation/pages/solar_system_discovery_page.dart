@@ -30,6 +30,7 @@ class _SolarSystemDiscoveryPageState extends State<SolarSystemDiscoveryPage> wit
     _controller = AnimationController(vsync: this, duration: const Duration(seconds: 10))..repeat();
     _startDiscovery();
     _subscription = widget.transferService.discoveredPeers.listen((peers) {
+      debugPrint('SolarSystemDiscoveryPage: Appareils recus via stream: ${peers.length}');
       setState(() {
         _peers = peers;
       });
@@ -37,11 +38,15 @@ class _SolarSystemDiscoveryPageState extends State<SolarSystemDiscoveryPage> wit
   }
 
   Future<void> _startDiscovery() async {
+    debugPrint('SolarSystemDiscoveryPage: Verification permissions...');
     if (await widget.transferService.requestPermissions()) {
+      debugPrint('SolarSystemDiscoveryPage: Permissions OK, lancement du service...');
       if (widget.isReceiver) {
         await widget.transferService.startAdvertising();
       }
       await widget.transferService.startDiscovery();
+    } else {
+      debugPrint('SolarSystemDiscoveryPage: Permissions refusees.');
     }
   }
 

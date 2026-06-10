@@ -242,7 +242,7 @@ class _WalletPageState extends State<WalletPage> {
     );
   }
 
-  void _handleTransfer(BuildContext context, TransferMethod method, bool isReceiver) {
+  void _handleTransfer(BuildContext context, TransferMethod method, bool isReceiver) async {
     Navigator.pop(context); // Fermer le dialogue
     
     final wallet = context.read<WalletProvider>().wallet;
@@ -263,16 +263,28 @@ class _WalletPageState extends State<WalletPage> {
     if (method == TransferMethod.quickShare) service = QuickShareTransferService();
 
     if (service != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SolarSystemDiscoveryPage(
-            transferService: service!,
-            amount: 500.0, // Montant par défaut pour le test
-            isReceiver: isReceiver,
-          ),
-        ),
-      );
+      // Demander les permissions avant de naviguer
+      bool granted = await service.requestPermissions();
+      if (granted) {
+        if (context.mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => SolarSystemDiscoveryPage(
+                transferService: service!,
+                amount: 500.0,
+                isReceiver: isReceiver,
+              ),
+            ),
+          );
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Permissions nécessaires non accordées.')),
+          );
+        }
+      }
     }
   }
 

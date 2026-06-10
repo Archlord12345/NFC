@@ -51,13 +51,16 @@ class WalletProvider extends ChangeNotifier {
   // ─── Actions ──────────────────────────────────────────────────────────────
 
   Future<void> chargerWallet(String utilisateurId) async {
+    debugPrint('WalletProvider: Tentative de chargement du wallet pour $utilisateurId');
     _setStatus(WalletStatus.loading);
 
     try {
       _wallet = await _getWallet(utilisateurId);
       _transactions = await _getHistorique(_wallet!.id);
+      debugPrint('WalletProvider: Wallet chargé avec succès (Solde: ${_wallet!.solde})');
       _setStatus(WalletStatus.loaded);
     } catch (e) {
+      debugPrint('WalletProvider: Erreur de chargement du wallet: $e');
       _errorMessage = e.toString();
       _setStatus(WalletStatus.error);
     }
@@ -104,7 +107,11 @@ class WalletProvider extends ChangeNotifier {
     required bool isEnvoi,
     String? peerWalletId,
   }) async {
-    if (_wallet == null) return false;
+    debugPrint('WalletProvider: Début transfert (montant: $montant, envoi: $isEnvoi, peer: $peerWalletId)');
+    if (_wallet == null) {
+      debugPrint('WalletProvider: Échec transfert, wallet null.');
+      return false;
+    }
 
     _isRecharging = true;
     notifyListeners();
@@ -123,6 +130,8 @@ class WalletProvider extends ChangeNotifier {
       _isRecharging = false;
       notifyListeners();
       
+      debugPrint('WalletProvider: Transfert réussi.');
+      
       // Notification
       NotificationService.showNotification(
         'Transaction réussie', 
@@ -131,6 +140,7 @@ class WalletProvider extends ChangeNotifier {
       
       return true;
     } catch (e) {
+      debugPrint('WalletProvider: Erreur transfert: $e');
       _errorMessage = e.toString();
       _isRecharging = false;
       notifyListeners();

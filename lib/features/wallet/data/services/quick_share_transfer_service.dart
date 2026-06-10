@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:nearby_connections/nearby_connections.dart';
 import '../../../../core/transfer/i_transfer_service.dart';
 
@@ -40,21 +41,25 @@ class QuickShareTransferService implements ITransferService {
 
   @override
   Future<void> startDiscovery() async {
+    debugPrint('QuickShareTransferService: Demarrage de la decouverte...');
     _discoveredPeersMap.clear();
     _peersController.add([]);
     
-    await Nearby().startDiscovery(
+    bool discoveryStarted = await Nearby().startDiscovery(
       userName,
       strategy,
       onEndpointFound: (id, name, serviceId) {
+        debugPrint('QuickShareTransferService: Appareil trouve - $name ($id)');
         _discoveredPeersMap[id] = Peer(id: id, name: name);
         _peersController.add(_discoveredPeersMap.values.toList());
       },
       onEndpointLost: (id) {
+        debugPrint('QuickShareTransferService: Appareil perdu - $id');
         _discoveredPeersMap.remove(id);
         _peersController.add(_discoveredPeersMap.values.toList());
       },
     );
+    debugPrint('QuickShareTransferService: Decouverte lancee: $discoveryStarted');
   }
 
   @override
