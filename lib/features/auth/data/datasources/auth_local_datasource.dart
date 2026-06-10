@@ -1,4 +1,5 @@
 import 'package:sqflite/sqflite.dart';
+import 'package:uuid/uuid.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../models/utilisateur_model.dart';
 
@@ -7,6 +8,7 @@ import '../models/utilisateur_model.dart';
 /// Effectue les requêtes SQLite concrètes via Sqflite.
 class AuthLocalDataSource {
   final Database database;
+  static const _uuid = Uuid();
 
   const AuthLocalDataSource(this.database);
 
@@ -38,6 +40,48 @@ class AuthLocalDataSource {
       estConnecte: true,
       motDePasseHash: user.motDePasseHash,
     );
+  }
+
+  /// Inscrit un nouvel utilisateur et lui crée un wallet.
+  Future<UtilisateurModel> register(String email, String motDePasseHash) async {
+    // Vérifier si l'email existe déjà
+    final existing = await database.query(
+      'utilisateurs',
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+
+    if (existing.isNotEmpty) {
+      throw const AuthException('Cet e-mail est déjà utilisé');
+    }
+
+    final userId = _uuid.v4();
+    final walletId = _uuid.v4();
+
+    return await database.transaction((txn) async {
+      // 1. Créer l'utilisateur
+      await txn.insert('utilisateurs', {
+        'id': userId,
+        'email': email,
+        'mot_de_passe_hash': motDePasseHash,
+        'est_connecte': 1,
+      });
+
+      // 2. Créer son wallet par défaut
+      await txn.insert('wallets', {
+        'id': walletId,
+        'utilisateur_id': userId,
+        'solde': 0.0,
+        'devise': 'XAF',
+      });
+
+      return UtilisateurModel(
+        id: userId,
+        email: email,
+        estConnecte: true,
+        motDePasseHash: motDePasseHash,
+      );
+    });
   }
 
   /// Met à jour le champ `est_connecte` à 0 pour l'utilisateur donné.

@@ -3,15 +3,9 @@ import 'package:mon_projet_nfc/features/auth/domain/entities/utilisateur.dart';
 import 'package:mon_projet_nfc/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mon_projet_nfc/features/auth/domain/usecases/logout_usecase.dart';
 
-/// Mock manuel du AuthRepository.
 class MockAuthRepository implements AuthRepository {
   bool logoutCalled = false;
   Exception? logoutException;
-
-  @override
-  Future<Utilisateur> login(String email, String motDePasse) async {
-    throw UnimplementedError();
-  }
 
   @override
   Future<void> logout() async {
@@ -20,7 +14,11 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<Utilisateur?> getUtilisateurConnecte() async => null;
+  Future<Utilisateur> login(String email, String motDePasse) => throw UnimplementedError();
+  @override
+  Future<Utilisateur> register(String email, String motDePasse) => throw UnimplementedError();
+  @override
+  Future<Utilisateur?> getUtilisateurConnecte() => throw UnimplementedError();
 }
 
 void main() {
@@ -35,13 +33,11 @@ void main() {
   group('LogoutUseCase', () {
     test('devrait appeler logout sur le repository', () async {
       await useCase();
-
       expect(mockRepository.logoutCalled, true);
     });
 
     test('devrait propager l\'exception quand le logout échoue', () async {
-      mockRepository.logoutException = Exception('Erreur de déconnexion');
-
+      mockRepository.logoutException = Exception('Erreur logout');
       expect(() => useCase(), throwsException);
     });
   });

@@ -20,6 +20,12 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Utilisateur> register(String email, String motDePasse) async {
+    final hash = sha256.convert(utf8.encode(motDePasse)).toString();
+    return await localDataSource.register(email, hash);
+  }
+
+  @override
   Future<void> logout() async {
     final user = await localDataSource.getUtilisateurConnecte();
     if (user != null) {

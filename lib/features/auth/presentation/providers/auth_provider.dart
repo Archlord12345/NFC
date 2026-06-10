@@ -2,25 +2,26 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/utilisateur.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
+import '../../domain/usecases/register_usecase.dart';
 import '../../domain/usecases/get_utilisateur_connecte_usecase.dart';
 
 /// États possibles de l'authentification.
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
 /// Provider gérant l'état d'authentification.
-///
-/// Utilise les use cases du domain pour exécuter la logique métier.
-/// Notifie l'UI de tout changement d'état via [ChangeNotifier].
 class AuthProvider extends ChangeNotifier {
   final LoginUseCase _loginUseCase;
+  final RegisterUseCase _registerUseCase;
   final LogoutUseCase _logoutUseCase;
   final GetUtilisateurConnecteUseCase _getUtilisateurConnecteUseCase;
 
   AuthProvider({
     required LoginUseCase loginUseCase,
+    required RegisterUseCase registerUseCase,
     required LogoutUseCase logoutUseCase,
     required GetUtilisateurConnecteUseCase getUtilisateurConnecteUseCase,
   })  : _loginUseCase = loginUseCase,
+        _registerUseCase = registerUseCase,
         _logoutUseCase = logoutUseCase,
         _getUtilisateurConnecteUseCase = getUtilisateurConnecteUseCase;
 
@@ -60,7 +61,23 @@ class AuthProvider extends ChangeNotifier {
       _utilisateur = await _loginUseCase(email, motDePasse);
       _status = AuthStatus.authenticated;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _status = AuthStatus.error;
+    }
+    notifyListeners();
+  }
+
+  /// Inscrit un nouvel utilisateur.
+  Future<void> register(String email, String motDePasse) async {
+    _status = AuthStatus.loading;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _utilisateur = await _registerUseCase(email, motDePasse);
+      _status = AuthStatus.authenticated;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
       _status = AuthStatus.error;
     }
     notifyListeners();
