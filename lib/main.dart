@@ -22,6 +22,11 @@ import 'features/wallet/domain/usecases/recharger_usecase.dart';
 import 'features/wallet/domain/usecases/transfert_nfc_usecase.dart';
 import 'features/wallet/presentation/providers/wallet_provider.dart';
 import 'features/nfc/presentation/providers/nfc_provider.dart';
+import 'features/wallet/presentation/providers/settings_provider.dart';
+// ...
+        ChangeNotifierProvider(
+          create: (_) => SettingsProvider(),
+        ),
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
