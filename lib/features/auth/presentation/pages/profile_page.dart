@@ -4,9 +4,20 @@ import '../../../../core/constants/app_colors.dart';
 import '../../presentation/providers/auth_provider.dart';
 
 /// Page de profil utilisateur.
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   final VoidCallback onLogout;
   const ProfilePage({super.key, required this.onLogout});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('ProfilePage: Chargement de la page Profil');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +88,7 @@ class ProfilePage extends StatelessWidget {
                 icon: Icons.logout,
                 title: 'Logout',
                 isDestructive: true,
-                onTap: onLogout,
+                onTap: widget.onLogout,
               ),
             ],
           );
@@ -110,20 +121,20 @@ class _ProfileTile extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
+      child: Material(
         color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(14),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: color),
-        title: Text(title,
-            style: theme.textTheme.bodyLarge?.copyWith(color: color)),
-        trailing: Icon(Icons.chevron_right,
-            color: isDark
-                ? AppColors.textSecondaryDark
-                : AppColors.textSecondaryLight),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        onTap: onTap,
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          leading: Icon(icon, color: color),
+          title: Text(title,
+              style: theme.textTheme.bodyLarge?.copyWith(color: color)),
+          trailing: Icon(Icons.chevron_right,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight),
+          onTap: onTap,
+        ),
       ),
     );
   }

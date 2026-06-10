@@ -5,8 +5,19 @@ import '../../domain/entities/transaction_entity.dart';
 import '../../presentation/providers/wallet_provider.dart';
 
 /// Page d'historique des transactions.
-class HistoryPage extends StatelessWidget {
+class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
+
+  @override
+  State<HistoryPage> createState() => _HistoryPageState();
+}
+
+class _HistoryPageState extends State<HistoryPage> {
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('HistoryPage: Chargement de la page Historique');
+  }
 
   @override
   Widget build(BuildContext context) {

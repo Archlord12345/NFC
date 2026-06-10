@@ -4,6 +4,13 @@ enum TransferMethod {
   quickShare,
 }
 
+class Peer {
+  final String id;
+  final String name;
+
+  Peer({required this.id, required this.name});
+}
+
 abstract class ITransferService {
   TransferMethod get method;
 
@@ -11,7 +18,11 @@ abstract class ITransferService {
   
   Future<void> startDiscovery();
   
+  Future<void> startAdvertising();
+  
   Future<void> stopDiscovery();
+
+  Stream<List<Peer>> get discoveredPeers;
 
   Future<void> sendData({
     required String peerId,

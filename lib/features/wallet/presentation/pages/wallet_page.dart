@@ -9,6 +9,11 @@ import '../../../../core/transfer/i_transfer_service.dart';
 import '../../../nfc/data/services/nfc_transfer_service.dart';
 import '../../data/services/bluetooth_transfer_service.dart';
 import '../../data/services/quick_share_transfer_service.dart';
+import '../../../../features/auth/presentation/providers/auth_provider.dart';
+import '../../../nfc/presentation/pages/nfc_scan_page.dart';
+import 'history_page.dart';
+import 'historique_page.dart';
+import 'recharge_page.dart';
 import 'solar_system_discovery_page.dart';
 
 /// WA-1, WA-2, WA-3, WA-4 — Page principale du portefeuille.
@@ -28,17 +33,21 @@ class _WalletPageState extends State<WalletPage> {
   @override
   void initState() {
     super.initState();
+    debugPrint('WalletPage: Chargement de la page Portefeuille');
     // Chargement différé pour laisser le widget tree se construire
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<WalletProvider>().chargerWallet(
-            context.read<String>(), // utilisateurId injecté dans main.dart
-          );
+      final userId = context.read<AuthProvider>().utilisateur?.id;
+      if (userId != null) {
+        context.read<WalletProvider>().chargerWallet(userId);
+      }
     });
   }
 
   Future<void> _onRefresh() async {
-    final userId = context.read<String>();
-    await context.read<WalletProvider>().chargerWallet(userId);
+    final userId = context.read<AuthProvider>().utilisateur?.id;
+    if (userId != null) {
+      await context.read<WalletProvider>().chargerWallet(userId);
+    }
   }
 
   @override
@@ -173,7 +182,7 @@ class _WalletPageState extends State<WalletPage> {
           color: AppColors.accent,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const RechargePage()),
+            MaterialPageRoute(builder: (_) => RechargePage()),
           ),
         ),
         _ActionButton(
@@ -183,49 +192,49 @@ class _WalletPageState extends State<WalletPage> {
           color: AppColors.info,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const HistoriquePage()),
+            MaterialPageRoute(builder: (_) => HistoriquePage()),
           ),
         ),
         _ActionButton(
-          id: 'btn_nfc',
-          icon: Icons.nfc_rounded,
-          label: 'Envoyer',
+          id: 'btn_share',
+          icon: Icons.share_rounded,
+          label: 'Partager',
           color: AppColors.warning,
           onTap: () => _showTransferMethodDialog(context),
         ),
         _ActionButton(
-          id: 'btn_scan',
-          icon: Icons.qr_code_scanner_rounded,
-          label: 'Scanner',
+          id: 'btn_receive',
+          icon: Icons.download_rounded,
+          label: 'Recevoir',
           color: AppColors.primarySoft,
-          onTap: () {},
+          onTap: () => _showTransferMethodDialog(context, isReceiver: true),
         ),
       ],
     );
   }
 
-  void _showTransferMethodDialog(BuildContext context) {
+  void _showTransferMethodDialog(BuildContext context, {bool isReceiver = false}) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Méthode d\'envoi'),
+        title: Text(isReceiver ? 'Méthode de réception' : 'Méthode d\'envoi'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
               leading: const Icon(Icons.nfc),
               title: const Text('NFC'),
-              onTap: () => _handleTransfer(context, TransferMethod.nfc),
+              onTap: () => _handleTransfer(context, TransferMethod.nfc, isReceiver),
             ),
             ListTile(
               leading: const Icon(Icons.bluetooth),
               title: const Text('Bluetooth'),
-              onTap: () => _handleTransfer(context, TransferMethod.bluetooth),
+              onTap: () => _handleTransfer(context, TransferMethod.bluetooth, isReceiver),
             ),
             ListTile(
               leading: const Icon(Icons.share),
               title: const Text('Quick Share'),
-              onTap: () => _handleTransfer(context, TransferMethod.quickShare),
+              onTap: () => _handleTransfer(context, TransferMethod.quickShare, isReceiver),
             ),
           ],
         ),
@@ -233,13 +242,23 @@ class _WalletPageState extends State<WalletPage> {
     );
   }
 
-  void _handleTransfer(BuildContext context, TransferMethod method) {
-    Navigator.pop(context); // Close dialog
+  void _handleTransfer(BuildContext context, TransferMethod method, bool isReceiver) {
+    Navigator.pop(context); // Fermer le dialogue
     
-    // Select the appropriate service implementation
-    // This is a simplification; in a real app, you would use DI (e.g., GetIt)
+    final wallet = context.read<WalletProvider>().wallet;
+    if (wallet == null) return;
+
+    if (method == TransferMethod.nfc) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => NfcScanPage(mode: isReceiver ? NfcMode.receive : NfcMode.send),
+        ),
+      );
+      return;
+    }
+
     ITransferService? service;
-    if (method == TransferMethod.nfc) service = NfcTransferService();
     if (method == TransferMethod.bluetooth) service = BluetoothTransferService();
     if (method == TransferMethod.quickShare) service = QuickShareTransferService();
 
@@ -249,7 +268,8 @@ class _WalletPageState extends State<WalletPage> {
         MaterialPageRoute(
           builder: (_) => SolarSystemDiscoveryPage(
             transferService: service!,
-            amount: 100.0, // Example amount
+            amount: 500.0, // Montant par défaut pour le test
+            isReceiver: isReceiver,
           ),
         ),
       );
@@ -279,7 +299,7 @@ class _WalletPageState extends State<WalletPage> {
               TextButton(
                 onPressed: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const HistoriquePage()),
+                  MaterialPageRoute(builder: (_) => HistoriquePage()),
                 ),
                 child: const Text(
                   'Tout voir',

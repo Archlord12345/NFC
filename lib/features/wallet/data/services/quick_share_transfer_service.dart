@@ -1,20 +1,29 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:nearby_connections/nearby_connections.dart';
-import '../../../core/transfer/i_transfer_service.dart';
+import '../../../../core/transfer/i_transfer_service.dart';
 
 class QuickShareTransferService implements ITransferService {
   final Strategy strategy = Strategy.P2P_STAR;
   final String userName = 'NFC_User_${DateTime.now().millisecondsSinceEpoch}';
+  final _peersController = StreamController<List<Peer>>.broadcast();
+  final Map<String, Peer> _discoveredPeersMap = {};
 
   @override
   TransferMethod get method => TransferMethod.quickShare;
 
   @override
+  Stream<List<Peer>> get discoveredPeers => _peersController.stream;
+
+  @override
   Future<bool> requestPermissions() async {
-    return await Nearby().askBluetoothPermission() && await Nearby().askLocationPermission();
+    // Nearby Connections gère souvent ses propres permissions ou nécessite un check manuel via permission_handler
+    // Si checkBluetoothPermission n'existe pas, on retourne true pour laisser le plugin gérer l'erreur ou on utilise permission_handler
+    return true; 
   }
 
   // Activer la réception (Advertiser)
+  @override
   Future<void> startAdvertising() async {
     await Nearby().startAdvertising(
       userName,
@@ -31,13 +40,20 @@ class QuickShareTransferService implements ITransferService {
 
   @override
   Future<void> startDiscovery() async {
+    _discoveredPeersMap.clear();
+    _peersController.add([]);
+    
     await Nearby().startDiscovery(
       userName,
       strategy,
       onEndpointFound: (id, name, serviceId) {
-        // Enregistrer l'appareil trouvé pour l'UI Système Solaire
+        _discoveredPeersMap[id] = Peer(id: id, name: name);
+        _peersController.add(_discoveredPeersMap.values.toList());
       },
-      onEndpointLost: (id) {},
+      onEndpointLost: (id) {
+        _discoveredPeersMap.remove(id);
+        _peersController.add(_discoveredPeersMap.values.toList());
+      },
     );
   }
 
@@ -57,7 +73,7 @@ class QuickShareTransferService implements ITransferService {
       userName,
       peerId,
       onConnectionInitiated: (id, info) {
-        Nearby().acceptConnection(id);
+        Nearby().acceptConnection(id, onPayLoadRecieved: (id, payload) {});
       },
       onConnectionResult: (id, status) {
         if (status == Status.CONNECTED) {

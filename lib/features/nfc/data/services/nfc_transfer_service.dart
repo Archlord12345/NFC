@@ -1,23 +1,30 @@
-import '../../core/transfer/i_transfer_service.dart';
+import '../../../../core/transfer/i_transfer_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
+import 'dart:async';
 
 class NfcTransferService implements ITransferService {
   @override
   TransferMethod get method => TransferMethod.nfc;
 
   @override
+  Stream<List<Peer>> get discoveredPeers => const Stream.empty();
+
+  @override
   Future<bool> requestPermissions() async {
-    // NFC permissions are often handled at manifest level, 
-    // but check is good practice if needed by specific plugins.
-    var status = await Permission.nfc.request();
-    return status.isGranted;
+    // NFC permissions are handled at manifest level
+    return true;
   }
 
   @override
   Future<void> startDiscovery() async {
     // NFC is passive discovery via tag presence
     await FlutterNfcKit.poll();
+  }
+
+  @override
+  Future<void> startAdvertising() async {
+    // NFC advertising (HCE)
   }
 
   @override

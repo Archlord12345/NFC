@@ -4,6 +4,10 @@ import 'package:local_auth/local_auth.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/transfer/i_transfer_service.dart';
+import '../../../wallet/data/services/bluetooth_transfer_service.dart';
+import '../../../wallet/data/services/quick_share_transfer_service.dart';
+import '../../../wallet/presentation/pages/solar_system_discovery_page.dart';
 import '../providers/nfc_provider.dart';
 import '../../../wallet/presentation/providers/wallet_provider.dart';
 
@@ -41,16 +45,21 @@ class _NfcScanPageState extends State<NfcScanPage>
   }
 
   Future<void> _checkNfcAvailability() async {
-    final available = await NfcManager.instance.isAvailable();
-    setState(() => _isNfcAvailable = available);
+    try {
+      final available = await NfcManager.instance.isAvailable();
+      setState(() => _isNfcAvailable = available);
 
-    if (available) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<NfcProvider>().reset();
-        if (widget.mode == NfcMode.receive) {
-          context.read<NfcProvider>().startReading();
-        }
-      });
+      if (available) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.read<NfcProvider>().reset();
+          if (widget.mode == NfcMode.receive) {
+            context.read<NfcProvider>().startReading();
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('NFC check error: $e');
+      setState(() => _isNfcAvailable = false);
     }
   }
 
@@ -118,6 +127,25 @@ class _NfcScanPageState extends State<NfcScanPage>
     );
   }
 
+  void _handleFallback(BuildContext context, TransferMethod method) {
+    ITransferService? service;
+    if (method == TransferMethod.bluetooth) service = BluetoothTransferService();
+    if (method == TransferMethod.quickShare) service = QuickShareTransferService();
+
+    if (service != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SolarSystemDiscoveryPage(
+            transferService: service!,
+            amount: double.tryParse(_amountController.text) ?? 500.0,
+            isReceiver: widget.mode == NfcMode.receive,
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -126,17 +154,49 @@ class _NfcScanPageState extends State<NfcScanPage>
 
     if (!_isNfcAvailable) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.mode == NfcMode.send ? 'Share Request' : 'Receive')),
+        backgroundColor: AppColors.backgroundLight,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          foregroundColor: AppColors.textPrimaryLight,
+          elevation: 0,
+          title: Text(widget.mode == NfcMode.send ? 'Envoi d\'argent' : 'Réception d\'argent'),
+        ),
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.share, size: 64, color: AppColors.accent),
-              const SizedBox(height: 20),
-              const Text('NFC not available. Use system share.'),
-              const SizedBox(height: 20),
-              ElevatedButton(onPressed: _onSharePressed, child: const Text('Share Request'))
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.nfc_outlined, size: 64, color: AppColors.error),
+                const SizedBox(height: 20),
+                Text(
+                  'Le NFC n\'est pas disponible sur cet appareil.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleMedium?.copyWith(color: AppColors.textPrimaryLight),
+                ),
+                const SizedBox(height: 32),
+                const Text(
+                  'Utilisez une autre méthode de transfert interne :',
+                  style: TextStyle(color: AppColors.textSecondaryLight),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _FallbackButton(
+                      icon: Icons.bluetooth,
+                      label: 'Bluetooth',
+                      onTap: () => _handleFallback(context, TransferMethod.bluetooth),
+                    ),
+                    _FallbackButton(
+                      icon: Icons.share_rounded,
+                      label: 'Quick Share',
+                      onTap: () => _handleFallback(context, TransferMethod.quickShare),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -262,6 +322,47 @@ class _NfcScanPageState extends State<NfcScanPage>
               ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FallbackButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _FallbackButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        decoration: BoxDecoration(
+          color: AppColors.accent.withAlpha(20),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.accent.withAlpha(40)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: AppColors.accent, size: 32),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.accent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
       ),
     );
