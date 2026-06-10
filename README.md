@@ -30,7 +30,7 @@ L'application repose sur un écosystème robuste et moderne :
 | :--- | :--- |
 | **Framework Mobile** | Flutter (Dart) |
 | **Architecture** | Clean Architecture, Provider, GetIt |
-| **Authentification** | Biométrie (Local Auth) |
+| **Authentification** | Biométrie (Local Auth v3.0+) |
 | **Persistance** | SQLite (sqflite) |
 | **Connectivité** | NFC, Flutter Blue Plus, Nearby Connections |
 | **Utilitaires** | PDF Generation, Notification, Share Plus |
@@ -46,6 +46,7 @@ Le développement a été ponctué de défis majeurs que l'équipe a dû surmont
 - **Contraintes LaTeX :** Difficultés lors de la génération automatique de la documentation PDF (Pandoc) dues à l'incompatibilité des caractères spéciaux.
 - **Robustesse du scan :** Gestion des interférences en cas de proximité de plusieurs appareils (résolu par l'interface "Système Solaire").
 - **Migration AGP :** Adaptation aux nouvelles exigences d'Android Gradle Plugin (9.0+) et migration vers le mécanisme de "Built-in Kotlin".
+- **API Breaking Changes :** Mise à jour vers `local_auth` v3.0+ nécessitant une refonte de l'appel à l'API d'authentification biométrique (`authenticate` sans `AuthenticationOptions`).
 
 ---
 

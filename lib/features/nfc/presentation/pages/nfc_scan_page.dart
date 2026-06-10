@@ -92,10 +92,6 @@ class _NfcScanPageState extends State<NfcScanPage>
       if (canAuthenticate) {
         final authenticated = await _auth.authenticate(
           localizedReason: 'Please authenticate to confirm the transfer of ${amount.toStringAsFixed(2)} ${wallet.devise}',
-          authenticationOptions: const AuthenticationOptions(
-            stickyAuth: true,
-            biometricOnly: false,
-          ),
         );
 
         if (!authenticated) return;
