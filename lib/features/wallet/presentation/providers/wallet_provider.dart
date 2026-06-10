@@ -72,7 +72,11 @@ class WalletProvider extends ChangeNotifier {
   }
 
   Future<bool> recharger(double montant) async {
-    // ... (rest of code)
+    if (_wallet == null) return false;
+
+    _isRecharging = true;
+    notifyListeners();
+
     try {
       await _recharger(
         RechargerParams(walletId: _wallet!.id, montant: montant),
@@ -87,16 +91,24 @@ class WalletProvider extends ChangeNotifier {
       
       return true;
     } catch (e) {
-      // ...
+      _errorMessage = e.toString();
+      _isRecharging = false;
+      notifyListeners();
+      return false;
     }
   }
 
+  /// WA-4, WA-5 : Effectue un transfert NFC.
   Future<bool> transfertNfc({
     required double montant,
     required bool isEnvoi,
     String? peerWalletId,
   }) async {
-    // ... (rest of code)
+    if (_wallet == null) return false;
+
+    _isRecharging = true;
+    notifyListeners();
+
     try {
       await _transfertNfc(
         TransfertNfcParams(
@@ -119,7 +131,10 @@ class WalletProvider extends ChangeNotifier {
       
       return true;
     } catch (e) {
-      // ...
+      _errorMessage = e.toString();
+      _isRecharging = false;
+      notifyListeners();
+      return false;
     }
   }
 

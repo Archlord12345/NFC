@@ -4,6 +4,7 @@ import 'core/constants/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'core/database/database_helper.dart';
 import 'core/navigation/main_shell.dart';
+import 'core/services/notification_service.dart';
 import 'features/auth/data/datasources/auth_local_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/usecases/login_usecase.dart';
@@ -23,16 +24,10 @@ import 'features/wallet/domain/usecases/transfert_nfc_usecase.dart';
 import 'features/wallet/presentation/providers/wallet_provider.dart';
 import 'features/nfc/presentation/providers/nfc_provider.dart';
 import 'features/wallet/presentation/providers/settings_provider.dart';
-// ...
-        ChangeNotifierProvider(
-          create: (_) => SettingsProvider(),
-        ),
-import 'core/services/notification_service.dart';
-// ...
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.init();
-
 
   // Initialiser la base de données
   final db = await DatabaseHelper.instance.database;
@@ -73,6 +68,9 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => NfcProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SettingsProvider(),
         ),
       ],
       child: const NfcCashApp(),
