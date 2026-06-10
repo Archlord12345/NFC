@@ -1,5 +1,7 @@
 # NFC Wallet Application
 
+![Logo](assets/images/logo.png)
+
 Application mobile innovante utilisant la technologie NFC pour faciliter les transactions financières sécurisées et rapides.
 
 ## Fonctionnalités principales
