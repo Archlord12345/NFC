@@ -1,5 +1,5 @@
 ---
-title: "Rapport de Projet Final : NFC Wallet Application"
+title: "Rapport de Projet Final : VAULT Wallet Application"
 author: "Équipe de développement - Projet UE ICT218"
 date: "Juin 2026"
 ---
@@ -7,7 +7,7 @@ date: "Juin 2026"
 ![Logo](assets/images/logo.png)
 
 # 1. Présentation du Projet
-La **NFC Wallet Application** est une solution mobile innovante développée pour faciliter les transactions financières sécurisées via des protocoles sans contact. Ce projet a été réalisé dans le cadre de l'unité d'enseignement **ICT218**.
+La **VAULT Wallet Application** est une solution mobile innovante développée pour faciliter les transactions financières sécurisées via des protocoles sans contact. Ce projet a été réalisé dans le cadre de l'unité d'enseignement **ICT218**.
 
 ## Équipe de développement
 Le projet a été réalisé par une équipe de **5 personnes**, avec une répartition des tâches basée sur une méthodologie Agile :
@@ -85,4 +85,4 @@ Le développement a été ponctué de défis majeurs que l'équipe a dû surmont
 ---
 
 # 6. Conclusion
-Le projet **NFC Wallet** est une réussite technique. En 3 semaines, l'équipe a su implémenter une solution complexe tout en respectant une architecture de qualité. Ce travail valide les acquis de l'UE ICT218 et démontre une maîtrise de l'écosystème Flutter et des interactions matérielles. L'application est aujourd'hui fonctionnelle, sécurisée, documentée et prête pour une utilisation avancée.
+Le projet **VAULT Wallet** est une réussite technique. En 3 semaines, l'équipe a su implémenter une solution complexe tout en respectant une architecture de qualité. Ce travail valide les acquis de l'UE ICT218 et démontre une maîtrise de l'écosystème Flutter et des interactions matérielles. L'application est aujourd'hui fonctionnelle, sécurisée, documentée et prête pour une utilisation avancée.
