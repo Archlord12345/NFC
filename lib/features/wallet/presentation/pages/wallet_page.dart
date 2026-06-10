@@ -188,15 +188,7 @@ class _WalletPageState extends State<WalletPage> {
           icon: Icons.nfc_rounded,
           label: 'Envoyer',
           color: AppColors.warning,
-          onTap: () {
-            // TODO: NFC module
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Module NFC bientôt disponible'),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          },
+          onTap: () => _showTransferMethodDialog(context),
         ),
         _ActionButton(
           id: 'btn_scan',
@@ -209,10 +201,42 @@ class _WalletPageState extends State<WalletPage> {
     );
   }
 
-  // ─────────────────────────── Transactions récentes ───────────────────────
+  void _showTransferMethodDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Méthode d\'envoi'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.nfc),
+              title: const Text('NFC'),
+              onTap: () => _handleTransfer(context, 'NFC'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.bluetooth),
+              title: const Text('Bluetooth'),
+              onTap: () => _handleTransfer(context, 'BLUETOOTH'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.share),
+              title: const Text('Quick Share'),
+              onTap: () => _handleTransfer(context, 'QUICK_SHARE'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-  Widget _buildTransactionsSection(
-      BuildContext context, WalletProvider provider) {
+  void _handleTransfer(BuildContext context, String method) {
+    Navigator.pop(context); // Close dialog
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Initialisation de $method...')),
+    );
+    // TODO: Initiate permission request and discovery for chosen method
+  }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

@@ -14,13 +14,16 @@ dependencies:
   # ── Icons ──
   cupertino_icons: ^1.0.8
 
-  # ── NFC ──
+  # ── NFC & Connectivity ──
   nfc_manager: ^4.1.1
   flutter_nfc_kit: ^3.6.2
   nfc_manager_ndef: ^1.1.0
   ndef_record: ^1.4.2
   ndef: ^0.4.0
   local_auth: ^2.3.0
+  permission_handler: ^11.3.1
+  flutter_blue_plus: ^1.31.5
+  nearby_connections: ^4.3.0
 
   # ── Base de données ──
   sqflite: ^2.3.0
