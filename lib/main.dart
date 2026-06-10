@@ -27,9 +27,12 @@ import 'features/wallet/presentation/providers/settings_provider.dart';
         ChangeNotifierProvider(
           create: (_) => SettingsProvider(),
         ),
-
+import 'core/services/notification_service.dart';
+// ...
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
+
 
   // Initialiser la base de données
   final db = await DatabaseHelper.instance.database;
