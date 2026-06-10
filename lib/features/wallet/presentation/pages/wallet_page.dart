@@ -5,8 +5,11 @@ import '../../../../core/constants/app_colors.dart';
 import '../providers/wallet_provider.dart';
 import '../widgets/solde_card.dart';
 import '../widgets/transaction_tile.dart';
-import 'historique_page.dart';
-import 'recharge_page.dart';
+import '../../../../core/transfer/i_transfer_service.dart';
+import '../../../nfc/data/services/nfc_transfer_service.dart';
+import '../../data/services/bluetooth_transfer_service.dart';
+import '../../data/services/quick_share_transfer_service.dart';
+import 'solar_system_discovery_page.dart';
 
 /// WA-1, WA-2, WA-3, WA-4 — Page principale du portefeuille.
 ///
@@ -212,17 +215,17 @@ class _WalletPageState extends State<WalletPage> {
             ListTile(
               leading: const Icon(Icons.nfc),
               title: const Text('NFC'),
-              onTap: () => _handleTransfer(context, 'NFC'),
+              onTap: () => _handleTransfer(context, TransferMethod.nfc),
             ),
             ListTile(
               leading: const Icon(Icons.bluetooth),
               title: const Text('Bluetooth'),
-              onTap: () => _handleTransfer(context, 'BLUETOOTH'),
+              onTap: () => _handleTransfer(context, TransferMethod.bluetooth),
             ),
             ListTile(
               leading: const Icon(Icons.share),
               title: const Text('Quick Share'),
-              onTap: () => _handleTransfer(context, 'QUICK_SHARE'),
+              onTap: () => _handleTransfer(context, TransferMethod.quickShare),
             ),
           ],
         ),
@@ -230,13 +233,33 @@ class _WalletPageState extends State<WalletPage> {
     );
   }
 
-  void _handleTransfer(BuildContext context, String method) {
+  void _handleTransfer(BuildContext context, TransferMethod method) {
     Navigator.pop(context); // Close dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Initialisation de $method...')),
-    );
-    // TODO: Initiate permission request and discovery for chosen method
+    
+    // Select the appropriate service implementation
+    // This is a simplification; in a real app, you would use DI (e.g., GetIt)
+    ITransferService? service;
+    if (method == TransferMethod.nfc) service = NfcTransferService();
+    if (method == TransferMethod.bluetooth) service = BluetoothTransferService();
+    if (method == TransferMethod.quickShare) service = QuickShareTransferService();
+
+    if (service != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SolarSystemDiscoveryPage(
+            transferService: service!,
+            amount: 100.0, // Example amount
+          ),
+        ),
+      );
+    }
   }
+
+  // ─────────────────────────── Transactions récentes ───────────────────────
+
+  Widget _buildTransactionsSection(
+      BuildContext context, WalletProvider provider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
