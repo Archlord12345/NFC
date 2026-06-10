@@ -231,11 +231,6 @@ class _WalletPageState extends State<WalletPage> {
               title: const Text('Bluetooth'),
               onTap: () => _handleTransfer(context, TransferMethod.bluetooth, isReceiver),
             ),
-            ListTile(
-              leading: const Icon(Icons.share),
-              title: const Text('Quick Share'),
-              onTap: () => _handleTransfer(context, TransferMethod.quickShare, isReceiver),
-            ),
           ],
         ),
       ),
@@ -260,7 +255,6 @@ class _WalletPageState extends State<WalletPage> {
 
     ITransferService? service;
     if (method == TransferMethod.bluetooth) service = BluetoothTransferService();
-    if (method == TransferMethod.quickShare) service = QuickShareTransferService();
 
     if (service != null) {
       // Demander les permissions avant de naviguer

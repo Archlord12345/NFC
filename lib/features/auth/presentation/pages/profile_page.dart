@@ -76,6 +76,52 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  void _showHelpDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Help & Support'),
+          content: const SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Help - Mode d\'emploi',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  '1. Rechargez votre portefeuille.\n'
+                  '2. Utilisez le NFC pour envoyer/recevoir.\n'
+                  '3. Consultez votre historique.',
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'FAQ - Développeurs',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                SizedBox(height: 8),
+                Text('Code source et documentation :'),
+                SelectableText(
+                  'https://github.com/Archlord12345/NFC',
+                  style: TextStyle(color: Colors.blue),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Fermer'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -128,19 +174,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 onTap: () => _showEditProfileDialog(context, auth),
               ),
               _ProfileTile(
-                icon: Icons.security,
-                title: 'Security',
-                onTap: () {},
-              ),
-              _ProfileTile(
-                icon: Icons.notifications_outlined,
-                title: 'Notifications',
-                onTap: () {},
-              ),
-              _ProfileTile(
                 icon: Icons.help_outline,
                 title: 'Help & Support',
-                onTap: () {},
+                onTap: () => _showHelpDialog(context),
               ),
               const SizedBox(height: 16),
               _ProfileTile(

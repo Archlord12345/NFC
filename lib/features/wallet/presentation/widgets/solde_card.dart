@@ -105,25 +105,6 @@ class SoldeCard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 24),
-
-          // ── Pied de carte ─────────────────────────────────────────────────
-          Row(
-            children: [
-              const Icon(Icons.credit_card_rounded,
-                  color: Colors.white38, size: 18),
-              const SizedBox(width: 8),
-              Text(
-                '•••• •••• •••• ${wallet.id.substring(wallet.id.length - 4).toUpperCase()}',
-                style: const TextStyle(
-                  color: Colors.white60,
-                  fontSize: 13,
-                  letterSpacing: 2,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
