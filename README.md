@@ -36,7 +36,7 @@ L'application repose sur un écosystème robuste et moderne :
 | **Persistance** | SQLite (sqflite) |
 | **Connectivité** | NFC, Flutter Blue Plus, Nearby Connections |
 | **Utilitaires** | PDF Generation, Notification, Share Plus |
-| **Automatisation** | Integration Test, GitHub Actions |
+| **Automatisation** | Integration Test Framework, GitHub Actions |
 | **Outils de Build** | Gradle (Kotlin DSL), Pandoc |
 
 ---
@@ -45,8 +45,9 @@ L'application repose sur un écosystème robuste et moderne :
 Le développement a été ponctué de défis majeurs que l'équipe a dû surmonter dans un délai restreint :
 - **Gestion du temps :** Réaliser l'ensemble des fonctionnalités en seulement 3 semaines a nécessité une organisation rigoureuse.
 - **Disponibilité du matériel :** L'accès limité aux équipements physiques (plusieurs téléphones équipés de NFC/Bluetooth) a rendu les tests de connectivité complexes.
-- **Erreurs de syntaxe YAML :** Résolution de clés en double dans `pubspec.yaml` (conflits de dépendances lors des mises à jour).
-- **Compilation :** Erreurs liées à des importations manquantes (`material.dart`) dans certaines pages.
+- **Erreurs de syntaxe YAML :** Résolution de clés en double dans `pubspec.yaml` lors de l'ajout itératif de dépendances.
+- **Compilation :** Erreurs liées à des importations manquantes (`material.dart`) dues à une restructuration rapide du code.
+- **Conflits de dépendances :** Résolution d'incompatibilités de versions (notamment `flutter_nfc_kit`) nécessitant une gestion fine du `pubspec.lock`.
 - **Contraintes LaTeX :** Difficultés lors de la génération automatique de la documentation PDF (Pandoc) dues à l'incompatibilité des caractères spéciaux et des émojis.
 - **Robustesse du scan :** Gestion des interférences en cas de proximité de plusieurs appareils (résolu par l'interface "Système Solaire").
 - **Migration AGP :** Adaptation aux nouvelles exigences d'Android Gradle Plugin (9.0+) et migration vers le mécanisme de "Built-in Kotlin".
@@ -63,10 +64,10 @@ Le développement a été ponctué de défis majeurs que l'équipe a dû surmont
 - **ServiceManager :** Gestion proactive de l'activation matérielle (Bluetooth/NFC).
 
 ### 4.2. Sécurité & User Experience
-- **Biométrie :** Authentification sécurisée via empreinte digitale ou reconnaissance faciale.
+- **Biométrie :** Authentification sécurisée via empreinte digitale ou reconnaissance faciale (implémentation v3.0+).
 - **Notifications :** Feedback temps réel pour toutes les transactions (recharges, envois, réceptions).
 - **Facturation PDF :** Génération automatique de factures téléchargeables pour chaque transaction.
-- **Automatisation QA :** Framework de tests d'intégration pour la capture automatisée d'écrans dans le CI.
+- **Automatisation QA :** Framework de tests d'intégration avec capture automatisée d'écrans lors des builds CI.
 
 ### 4.3. Interface Utilisateur (UI)
 - **Hub Portefeuille :** Tableau de bord complet.
