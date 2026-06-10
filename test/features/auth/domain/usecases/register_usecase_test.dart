@@ -8,7 +8,7 @@ class MockAuthRepository implements AuthRepository {
   Exception? registerException;
 
   @override
-  Future<Utilisateur> register(String email, String motDePasse) async {
+  Future<Utilisateur> register(String email, String motDePasse, String firstname, String lastname) async {
     if (registerException != null) throw registerException!;
     return registerResult!;
   }
@@ -19,6 +19,10 @@ class MockAuthRepository implements AuthRepository {
   Future<void> logout() => throw UnimplementedError();
   @override
   Future<Utilisateur?> getUtilisateurConnecte() => throw UnimplementedError();
+  @override
+  Future<Utilisateur> loginWithBiometrics() => throw UnimplementedError();
+  @override
+  Future<void> updateProfile(String id, String firstname, String lastname) => throw UnimplementedError();
 }
 
 void main() {
@@ -33,6 +37,8 @@ void main() {
   const tUtilisateur = Utilisateur(
     id: 'user-new',
     email: 'new@example.com',
+    firstname: 'John',
+    lastname: 'Doe',
     estConnecte: true,
   );
 
@@ -40,7 +46,7 @@ void main() {
     test('devrait retourner un Utilisateur quand l\'inscription réussit', () async {
       mockRepository.registerResult = tUtilisateur;
 
-      final result = await useCase('new@example.com', 'password123');
+      final result = await useCase('new@example.com', 'password123', 'John', 'Doe');
 
       expect(result, isA<Utilisateur>());
       expect(result.id, 'user-new');
@@ -52,7 +58,7 @@ void main() {
       mockRepository.registerException = Exception('Email already exists');
 
       expect(
-        () => useCase('existing@example.com', 'password123'),
+        () => useCase('existing@example.com', 'password123', 'John', 'Doe'),
         throwsException,
       );
     });

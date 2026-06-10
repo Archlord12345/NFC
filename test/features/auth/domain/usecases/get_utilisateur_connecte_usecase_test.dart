@@ -14,7 +14,11 @@ class MockAuthRepository implements AuthRepository {
   @override
   Future<Utilisateur> login(String email, String motDePasse) => throw UnimplementedError();
   @override
-  Future<Utilisateur> register(String email, String motDePasse) => throw UnimplementedError();
+  Future<Utilisateur> register(String email, String motDePasse, String firstname, String lastname) => throw UnimplementedError();
+  @override
+  Future<Utilisateur> loginWithBiometrics() => throw UnimplementedError();
+  @override
+  Future<void> updateProfile(String id, String firstname, String lastname) => throw UnimplementedError();
   @override
   Future<void> logout() => throw UnimplementedError();
 }
@@ -31,6 +35,8 @@ void main() {
   const tUtilisateur = Utilisateur(
     id: 'user-001',
     email: 'test@example.com',
+    firstname: 'John',
+    lastname: 'Doe',
     estConnecte: true,
   );
 
