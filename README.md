@@ -1,17 +1,41 @@
-# mon_projet_nfc
+# NFC Wallet Application
 
-A new Flutter project.
+Application mobile innovante utilisant la technologie NFC pour faciliter les transactions financières sécurisées et rapides.
 
-## Getting Started
+## 🚀 Fonctionnalités principales
 
-This project is a starting point for a Flutter application.
+- **Portefeuille numérique :** Gestion du solde en temps réel.
+- **Transactions NFC :** Paiements et transferts sécurisés par simple contact NFC.
+- **Historique :** Suivi détaillé des transactions.
+- **Rechargement :** Ajout de fonds au portefeuille.
 
-A few resources to get you started if this is your first Flutter project:
+## 🛠️ Architecture technique
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+Le projet suit une architecture propre (Clean Architecture) pour assurer la maintenabilité et la testabilité :
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- **Core :** Contient les bases partagées (thèmes, constantes, erreurs, usecases).
+- **Features :**
+  - `auth` : Gestion de l'authentification des utilisateurs.
+  - `nfc` : Intégration du module de communication NFC.
+  - `wallet` : Gestion du solde, des transactions et des recharges.
+
+## 🏗️ Structure du projet
+
+```
+/lib
+├── core/         # Composants partagés (Thèmes, Constants, Errors)
+└── features/     # Fonctionnalités métier
+    ├── auth/     # Authentification
+    ├── nfc/      # Communication NFC
+    └── wallet/   # Portefeuille (Data, Domain, Presentation)
+```
+
+## ⚙️ Installation
+
+1. Cloner le dépôt : `git clone https://github.com/Archlord12345/NFC.git`
+2. Installer les dépendances : `flutter pub get`
+3. Configurer les variables d'environnement (si nécessaire).
+4. Lancer l'application : `flutter run`
+
+---
+*Projet développé avec Flutter.*
