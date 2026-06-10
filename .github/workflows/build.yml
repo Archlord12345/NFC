@@ -7,47 +7,42 @@ on:
       - main
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Run tests
+        run: flutter test
 
+  build-apk:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'zulu'
           cache: 'gradle'
-
-      - name: Install Pandoc
-        run: sudo apt-get update && sudo apt-get install -y pandoc texlive-latex-base texlive-fonts-recommended texlive-latex-extra texlive-xetex
-
-      - name: Generate Documentation PDF
-        run: pandoc README.md -o documentation.pdf
-
-      - name: Upload Documentation PDF
-        uses: actions/upload-artifact@v4
-        with:
-          name: documentation-pdf
-          path: documentation.pdf
-          retention-days: 7
-
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
-
       - name: Get dependencies
         run: flutter pub get
-
       - name: Build APK
         run: flutter build apk --release
-
-      - name: Build App Bundle (AAB)
-        run: flutter build appbundle --release
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
@@ -55,9 +50,47 @@ jobs:
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 7
 
+  build-aab:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+          cache: 'gradle'
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Build App Bundle (AAB)
+        run: flutter build appbundle --release
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
           name: app-release-aab
           path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 7
+
+  generate-docs:
+    needs: [build-apk, build-aab]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install Pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc texlive-latex-base texlive-fonts-recommended texlive-latex-extra texlive-xetex
+      - name: Generate Documentation PDF
+        run: pandoc README.md -o documentation.pdf
+      - name: Upload Documentation PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation-pdf
+          path: documentation.pdf
           retention-days: 7
