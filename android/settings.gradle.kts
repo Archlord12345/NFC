@@ -24,10 +24,3 @@ plugins {
 }
 
 include(":app")
-
-// Configurer Gradle pour autoriser le téléchargement automatique des toolchains
-gradle.jvmToolchainRepositories {
-    repository("java-toolchain-repo") {
-        mavenCentral()
-    }
-}
