@@ -175,11 +175,12 @@ class _NfcScanPageState extends State<NfcScanPage>
     }
 
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        title: Text(widget.mode == NfcMode.send ? 'Send Money' : 'Receive Money'),
+        foregroundColor: AppColors.textPrimaryLight,
+        elevation: 0,
+        title: Text(widget.mode == NfcMode.send ? 'Send Money' : 'Receive Money', style: const TextStyle(color: AppColors.textPrimaryLight)),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () {
@@ -197,17 +198,17 @@ class _NfcScanPageState extends State<NfcScanPage>
               if (widget.mode == NfcMode.send && !_isWritingMode) ...[
                 Text(
                   'Enter amount to send',
-                  style: theme.textTheme.headlineSmall?.copyWith(color: Colors.white),
+                  style: theme.textTheme.headlineSmall?.copyWith(color: AppColors.textPrimaryLight),
                 ),
                 const SizedBox(height: 24),
                 TextField(
                   controller: _amountController,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: Colors.black, fontSize: 32, fontWeight: FontWeight.bold),
                   decoration: const InputDecoration(
                     hintText: '0.00',
-                    hintStyle: TextStyle(color: Colors.white38),
+                    hintStyle: TextStyle(color: AppColors.textSecondaryLight),
                     border: InputBorder.none,
                   ),
                 ),
@@ -247,7 +248,7 @@ class _NfcScanPageState extends State<NfcScanPage>
                   nfcProvider.status == NfcSessionStatus.error
                       ? 'Error!'
                       : (nfcProvider.status == NfcSessionStatus.success ? 'Success!' : 'Ready to Scan'),
-                  style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
+                  style: theme.textTheme.titleLarge?.copyWith(color: AppColors.textPrimaryLight),
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -256,7 +257,7 @@ class _NfcScanPageState extends State<NfcScanPage>
                           ? 'Approach the devices to transfer ${_amountController.text} ${walletProvider.wallet?.devise}'
                           : 'Hold your device near the sender\'s phone'),
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                  style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondaryLight),
                 ),
               ],
             ],
