@@ -60,7 +60,6 @@ Le développement a été ponctué de défis majeurs que l'équipe a dû surmont
 - **Robustesse du scan :** Gestion des interférences en cas de proximité de plusieurs appareils (résolu par l'interface "Système Solaire").
 - **Migration AGP :** Adaptation aux nouvelles exigences d'Android Gradle Plugin (9.0+) et migration vers le mécanisme de "Built-in Kotlin".
 - **API Breaking Changes :** Mise à jour vers `local_auth` v3.0+ nécessitant une refonte de l'appel à l'API d'authentification biométrique (`authenticate` sans `AuthenticationOptions`).
-- **Avertissements KGP & Dépréciations :** Certains plugins tiers (`nearby_connections`, etc.) utilisent encore des configurations Kotlin Gradle Plugin obsolètes qui génèrent des avertissements durant le build. Ces warnings sont hors de notre contrôle direct et nécessitent une mise à jour de la part des mainteneurs de ces bibliothèques. Nous maintenons la compatibilité maximale possible avec les versions actuelles.
 - **Desugaring :** Résolution de l'erreur `checkReleaseAarMetadata` nécessitant l'activation du "core library desugaring" pour la compatibilité avec les API Java modernes.
 - **Cache CI/CD :** Problèmes d'interfaces obsolètes dans les builds automatisés, résolus par l'ajout systématique de `flutter clean` avant chaque build.
 
