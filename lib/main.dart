@@ -7,6 +7,7 @@ import 'core/navigation/main_shell.dart';
 import 'features/auth/data/datasources/auth_local_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/usecases/login_usecase.dart';
+import 'features/auth/domain/usecases/register_usecase.dart';
 import 'features/auth/domain/usecases/logout_usecase.dart';
 import 'features/auth/domain/usecases/get_utilisateur_connecte_usecase.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
@@ -48,6 +49,7 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => AuthProvider(
             loginUseCase: LoginUseCase(authRepository),
+            registerUseCase: RegisterUseCase(authRepository),
             logoutUseCase: LogoutUseCase(authRepository),
             getUtilisateurConnecteUseCase:
                 GetUtilisateurConnecteUseCase(authRepository),
@@ -88,7 +90,7 @@ class NfcCashApp extends StatelessWidget {
           // Pendant le chargement initial
           if (auth.status == AuthStatus.initial ||
               auth.status == AuthStatus.loading) {
-            return _SplashScreen();
+            return const _SplashScreen();
           }
           // Si authentifié → shell principal
           if (auth.isAuthenticated) {
@@ -146,9 +148,9 @@ class _SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/images/logo.png', width: 120),
-            SizedBox(height: 16),
-            CircularProgressIndicator(color: AppColors.accent),
+            const Icon(Icons.nfc_rounded, size: 80, color: AppColors.accent),
+            const SizedBox(height: 16),
+            const CircularProgressIndicator(color: AppColors.accent),
           ],
         ),
       ),

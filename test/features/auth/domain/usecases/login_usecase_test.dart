@@ -17,6 +17,11 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<Utilisateur> register(String email, String motDePasse) async {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> logout() async {
     logoutCalled = true;
   }

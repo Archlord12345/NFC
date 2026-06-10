@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mon_projet_nfc/features/auth/domain/entities/utilisateur.dart';
 import 'package:mon_projet_nfc/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mon_projet_nfc/features/auth/domain/usecases/login_usecase.dart';
+import 'package:mon_projet_nfc/features/auth/domain/usecases/register_usecase.dart';
 import 'package:mon_projet_nfc/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:mon_projet_nfc/features/auth/domain/usecases/get_utilisateur_connecte_usecase.dart';
 import 'package:mon_projet_nfc/features/auth/presentation/providers/auth_provider.dart';
@@ -9,8 +10,10 @@ import 'package:mon_projet_nfc/features/auth/presentation/providers/auth_provide
 /// Mock manuel du AuthRepository pour tester le provider.
 class MockAuthRepository implements AuthRepository {
   Utilisateur? loginResult;
+  Utilisateur? registerResult;
   Utilisateur? utilisateurConnecte;
   Exception? loginException;
+  Exception? registerException;
   Exception? logoutException;
   bool logoutCalled = false;
 
@@ -18,6 +21,12 @@ class MockAuthRepository implements AuthRepository {
   Future<Utilisateur> login(String email, String motDePasse) async {
     if (loginException != null) throw loginException!;
     return loginResult!;
+  }
+
+  @override
+  Future<Utilisateur> register(String email, String motDePasse) async {
+    if (registerException != null) throw registerException!;
+    return registerResult!;
   }
 
   @override
@@ -40,6 +49,7 @@ void main() {
     mockRepository = MockAuthRepository();
     provider = AuthProvider(
       loginUseCase: LoginUseCase(mockRepository),
+      registerUseCase: RegisterUseCase(mockRepository),
       logoutUseCase: LogoutUseCase(mockRepository),
       getUtilisateurConnecteUseCase:
           GetUtilisateurConnecteUseCase(mockRepository),
@@ -77,6 +87,29 @@ void main() {
       mockRepository.loginException = Exception('Identifiants incorrects');
 
       await provider.login('wrong@example.com', 'badpass');
+
+      expect(provider.status, AuthStatus.error);
+      expect(provider.errorMessage, isNotNull);
+      expect(provider.isAuthenticated, false);
+    });
+  });
+
+  group('AuthProvider — register', () {
+    test('devrait passer à authenticated après une inscription réussie', () async {
+      mockRepository.registerResult = tUtilisateur;
+
+      await provider.register('test@example.com', 'password123');
+
+      expect(provider.status, AuthStatus.authenticated);
+      expect(provider.utilisateur, isNotNull);
+      expect(provider.utilisateur!.email, 'test@example.com');
+      expect(provider.isAuthenticated, true);
+    });
+
+    test('devrait passer à error après une inscription échouée', () async {
+      mockRepository.registerException = Exception('Email already used');
+
+      await provider.register('existing@example.com', 'password123');
 
       expect(provider.status, AuthStatus.error);
       expect(provider.errorMessage, isNotNull);

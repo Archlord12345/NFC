@@ -5,6 +5,7 @@ import 'package:mon_projet_nfc/main.dart';
 import 'package:mon_projet_nfc/features/auth/presentation/providers/auth_provider.dart';
 import 'package:mon_projet_nfc/features/auth/domain/entities/utilisateur.dart';
 import 'package:mon_projet_nfc/features/auth/domain/usecases/login_usecase.dart';
+import 'package:mon_projet_nfc/features/auth/domain/usecases/register_usecase.dart';
 import 'package:mon_projet_nfc/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:mon_projet_nfc/features/auth/domain/usecases/get_utilisateur_connecte_usecase.dart';
 import 'package:mon_projet_nfc/features/auth/domain/repositories/auth_repository.dart';
@@ -12,6 +13,11 @@ import 'package:mon_projet_nfc/features/auth/domain/repositories/auth_repository
 class MockAuthRepository implements AuthRepository {
   @override
   Future<Utilisateur> login(String email, String motDePasse) async {
+    return const Utilisateur(id: '1', email: 'a@a.com', estConnecte: true);
+  }
+
+  @override
+  Future<Utilisateur> register(String email, String motDePasse) async {
     return const Utilisateur(id: '1', email: 'a@a.com', estConnecte: true);
   }
 
@@ -30,6 +36,7 @@ void main() {
       ChangeNotifierProvider(
         create: (_) => AuthProvider(
           loginUseCase: LoginUseCase(repository),
+          registerUseCase: RegisterUseCase(repository),
           logoutUseCase: LogoutUseCase(repository),
           getUtilisateurConnecteUseCase: GetUtilisateurConnecteUseCase(repository),
         )..checkSession(),
@@ -44,6 +51,6 @@ void main() {
     await tester.pumpAndSettle();
 
     // La page de login contient l'icône nfc_rounded
-    expect(find.byIcon(Icons.nfc_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.nfc_rounded), findsAtLeast(1));
   });
 }

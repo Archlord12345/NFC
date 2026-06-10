@@ -9,6 +9,9 @@ abstract class AuthRepository {
   /// Retourne l'[Utilisateur] en cas de succès, lève une exception sinon.
   Future<Utilisateur> login(String email, String motDePasse);
 
+  /// Inscrit un nouvel utilisateur.
+  Future<Utilisateur> register(String email, String motDePasse);
+
   /// Déconnecte l'utilisateur courant.
   Future<void> logout();
 
