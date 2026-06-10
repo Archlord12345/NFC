@@ -4,7 +4,7 @@ author: "Équipe de développement - Projet UE ICT218"
 date: "Juin 2026"
 ---
 
-![Logo](assets/images/logo.png)
+<img src="assets/images/logo.png" width="200">
 
 # 1. Présentation du Projet
 La **VAULT Wallet Application** est une solution mobile innovante développée pour faciliter les transactions financières sécurisées via des protocoles sans contact. Ce projet a été réalisé dans le cadre de l'unité d'enseignement **ICT218**.
@@ -59,7 +59,7 @@ Le développement a été ponctué de défis majeurs que l'équipe a dû surmont
 - **Robustesse du scan :** Gestion des interférences en cas de proximité de plusieurs appareils (résolu par l'interface "Système Solaire").
 - **Migration AGP :** Adaptation aux nouvelles exigences d'Android Gradle Plugin (9.0+) et migration vers le mécanisme de "Built-in Kotlin".
 - **API Breaking Changes :** Mise à jour vers `local_auth` v3.0+ nécessitant une refonte de l'appel à l'API d'authentification biométrique (`authenticate` sans `AuthenticationOptions`).
-- **Automatisation CI/CD (Émulateur) :** La capture d'écran automatisée utilise une configuration d'émulateur optimisée et légère (API 29, rendu logiciel, mémoire réduite) pour tenter de s'exécuter dans les limites des runners CI. La stabilité reste dépendante des ressources disponibles sur GitHub Actions.
+- **Pipeline CI/CD :** Complexité de configuration d'un émulateur Android "léger" (headless) au sein de GitHub Actions pour l'automatisation des captures d'écran.
 - **Desugaring :** Résolution de l'erreur `checkReleaseAarMetadata` nécessitant l'activation du "core library desugaring" pour la compatibilité avec les API Java modernes.
 
 ---
