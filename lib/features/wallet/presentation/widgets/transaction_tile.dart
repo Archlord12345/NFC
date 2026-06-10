@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../domain/entities/transaction_entity.dart';
+import '../../data/services/invoice_service.dart';
 
 /// Tuile représentant une transaction dans la liste de l'historique.
 ///
@@ -45,7 +46,10 @@ class TransactionTile extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {}, // TODO: détail transaction
+          onTap: () {
+            // Télécharger la facture
+            InvoiceService.generateAndShareInvoice(transaction, !isEntree);
+          },
           child: Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
