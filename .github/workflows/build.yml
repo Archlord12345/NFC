@@ -111,3 +111,33 @@ jobs:
           name: full-project-zip
           path: project.zip
           retention-days: 7
+
+  screenshot-job:
+    needs: zip-project
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - name: Setup Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: default
+          arch: x86
+          force-avd-creation: false
+          # Configuration "léger" pour CI
+          emulator-options: -no-snapshot -no-window -no-boot-anim -no-audio -gpu swiftshader_indirect -memory 1536
+          script: |
+            flutter drive --driver=test_driver/integration_test.dart --target=integration_test/screenshot_test.dart
+            zip -r screenshots.zip screenshots/
+      - name: Upload Screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-screenshots
+          path: screenshots.zip
+          retention-days: 7
