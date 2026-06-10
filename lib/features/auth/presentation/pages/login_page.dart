@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -17,6 +17,39 @@ class _LoginPageState extends State<LoginPage> {
   final _motDePasseController = TextEditingController();
   bool _obscureMotDePasse = true;
   bool _isRegisterMode = false;
+
+  Future<void> _authenticateWithBiometrics() async {
+    final LocalAuthentication auth = LocalAuthentication();
+    
+    // Check if device supports biometrics
+    final bool canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
+    final bool canAuthenticate = canAuthenticateWithBiometrics || await auth.isDeviceSupported();
+
+    if (canAuthenticate) {
+      try {
+        final bool didAuthenticate = await auth.authenticate(
+          localizedReason: 'Please authenticate to log in',
+          options: const AuthenticationOptions(biometricOnly: false),
+        );
+        
+        if (didAuthenticate) {
+          // Perform login logic here
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Authentication successful')),
+          );
+          // Redirect to home/dashboard
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Biometric error: $e')),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Biometrics not supported')),
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -214,7 +247,7 @@ class _LoginPageState extends State<LoginPage> {
 
                           // ── Biométrie ──
                           OutlinedButton.icon(
-                            onPressed: () {},
+                            onPressed: _authenticateWithBiometrics,
                             icon: const Icon(Icons.fingerprint),
                             label: const Text('Use Biometrics'),
                             style: OutlinedButton.styleFrom(
