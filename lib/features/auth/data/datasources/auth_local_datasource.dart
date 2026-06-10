@@ -15,17 +15,21 @@ class AuthLocalDataSource {
   /// Recherche un utilisateur par email et vérifie le mot de passe hashé.
   /// Retourne le [UtilisateurModel] correspondant ou lève une [AuthException].
   Future<UtilisateurModel> login(String email, String motDePasseHash) async {
+    print('DEBUG: Attempting login for $email');
     final result = await database.query(
       'utilisateurs',
       where: 'email = ? AND mot_de_passe_hash = ?',
       whereArgs: [email, motDePasseHash],
     );
 
+    print('DEBUG: Found ${result.length} user(s)');
+    
     if (result.isEmpty) {
       throw const AuthException('Identifiants incorrects');
     }
 
     final user = UtilisateurModel.fromMap(result.first);
+    print('DEBUG: User ID found: ${user.id}');
 
     await database.update(
       'utilisateurs',
@@ -33,6 +37,7 @@ class AuthLocalDataSource {
       where: 'id = ?',
       whereArgs: [user.id],
     );
+    print('DEBUG: Session marked as connected');
 
     return UtilisateurModel(
       id: user.id,
