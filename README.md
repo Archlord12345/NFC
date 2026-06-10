@@ -4,6 +4,8 @@ author: "Équipe de développement - Projet UE ICT218"
 date: "Juin 2026"
 ---
 
+![Logo](assets/images/logo.png)
+
 # 1. Présentation du Projet
 La **NFC Wallet Application** est une solution mobile innovante développée pour faciliter les transactions financières sécurisées via des protocoles sans contact. Ce projet a été réalisé dans le cadre de l'unité d'enseignement **ICT218**.
 
@@ -19,7 +21,7 @@ Le projet a été réalisé par une équipe de **5 personnes**, avec une répart
 Le développement s'est étalé sur une période intense de **3 semaines** :
 - **Semaine 1 :** Analyse des besoins, conception de l'architecture et mise en place de l'environnement.
 - **Semaine 2 :** Implémentation des services de transfert (NFC, Bluetooth, Nearby) et logique métier.
-- **Semaine 3 :** Développement de l'UI (Système Solaire), résolution des contraintes techniques, implémentation de la biométrie, du système de facturation PDF et tests finaux.
+- **Semaine 3 :** Développement de l'UI (Système Solaire), résolution des contraintes techniques, implémentation de la biométrie, du système de facturation PDF, notifications et tests finaux.
 
 ---
 
@@ -42,8 +44,9 @@ L'application repose sur un écosystème robuste et moderne :
 Le développement a été ponctué de défis majeurs que l'équipe a dû surmonter dans un délai restreint :
 - **Gestion du temps :** Réaliser l'ensemble des fonctionnalités en seulement 3 semaines a nécessité une organisation rigoureuse.
 - **Disponibilité du matériel :** L'accès limité aux équipements physiques (plusieurs téléphones équipés de NFC/Bluetooth) a rendu les tests de connectivité complexes.
-- **Compatibilité des plugins :** Gestion des conflits lors de l'intégration de multiples services de connectivité (Nearby, NFC).
-- **Contraintes LaTeX :** Difficultés lors de la génération automatique de la documentation PDF (Pandoc) dues à l'incompatibilité des caractères spéciaux.
+- **Erreurs de syntaxe YAML :** Résolution de clés en double dans `pubspec.yaml` (conflits de dépendances).
+- **Compilation :** Erreurs liées à des importations manquantes (`material.dart`) dans certaines pages.
+- **Contraintes LaTeX :** Difficultés lors de la génération automatique de la documentation PDF (Pandoc) dues à l'incompatibilité des caractères spéciaux et des émojis.
 - **Robustesse du scan :** Gestion des interférences en cas de proximité de plusieurs appareils (résolu par l'interface "Système Solaire").
 - **Migration AGP :** Adaptation aux nouvelles exigences d'Android Gradle Plugin (9.0+) et migration vers le mécanisme de "Built-in Kotlin".
 - **API Breaking Changes :** Mise à jour vers `local_auth` v3.0+ nécessitant une refonte de l'appel à l'API d'authentification biométrique (`authenticate` sans `AuthenticationOptions`).
