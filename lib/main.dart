@@ -89,14 +89,16 @@ class NfcCashApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'NFC Cash',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
-      // Route initiale gérée par le Consumer ci-dessous
-      home: Consumer<AuthProvider>(
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, _) {
+        return MaterialApp(
+          title: 'NFC Cash',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: settings.themeMode,
+          // Route initiale gérée par le Consumer ci-dessous
+          home: Consumer<AuthProvider>(
         builder: (context, auth, _) {
           // Pendant le chargement initial
           if (auth.status == AuthStatus.initial ||
@@ -143,6 +145,8 @@ class NfcCashApp extends StatelessWidget {
               builder: (_) => const LoginPage(),
             );
         }
+      },
+    );
       },
     );
   }

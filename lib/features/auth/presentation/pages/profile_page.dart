@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../presentation/providers/auth_provider.dart';
+import '../../../wallet/presentation/providers/settings_provider.dart';
 
 /// Page de profil utilisateur.
 class ProfilePage extends StatefulWidget {
@@ -177,6 +178,20 @@ class _ProfilePageState extends State<ProfilePage> {
                 icon: Icons.help_outline,
                 title: 'Help & Support',
                 onTap: () => _showHelpDialog(context),
+              ),
+              Consumer<SettingsProvider>(
+                builder: (context, settings, _) {
+                  final themeMode = settings.themeMode;
+                  final isDark = themeMode == ThemeMode.dark ||
+                      (themeMode == ThemeMode.system &&
+                          MediaQuery.of(context).platformBrightness ==
+                              Brightness.dark);
+                  return _ProfileTile(
+                    icon: isDark ? Icons.light_mode : Icons.dark_mode,
+                    title: isDark ? 'Light Mode' : 'Dark Mode',
+                    onTap: () => settings.toggleTheme(),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               _ProfileTile(
