@@ -10,10 +10,23 @@ class BluetoothTransferService implements ITransferService {
 
   @override
   Stream<List<Peer>> get discoveredPeers => FlutterBluePlus.scanResults.map(
-    (results) => results.map((r) => Peer(
-      id: r.device.remoteId.str,
-      name: r.device.platformName.isEmpty ? 'Appareil Inconnu' : r.device.platformName,
-    )).toList()
+    (results) {
+      // Liste de mots-clés heuristiques pour repérer les téléphones
+      final phoneKeywords = ['iphone', 'galaxy', 'samsung', 'pixel', 'redmi', 'huawei', 'oppo', 'poco', 'moto', 'android', 'phone', 'smartphone'];
+      
+      return results
+        .where((r) {
+          final name = r.device.platformName.toLowerCase();
+          // Ignorer les appareils sans nom
+          if (name.isEmpty) return false;
+          // Vérifier si le nom contient un mot-clé de téléphone
+          return phoneKeywords.any((keyword) => name.contains(keyword));
+        })
+        .map((r) => Peer(
+          id: r.device.remoteId.str,
+          name: r.device.platformName,
+        )).toList();
+    }
   );
 
   @override
@@ -52,10 +65,23 @@ class BluetoothTransferService implements ITransferService {
   }) async {
     // Simulation d'une connexion et d'un envoi réel
     final device = BluetoothDevice(remoteId: DeviceIdentifier(peerId));
-    await device.connect();
     
-    // Simulation du transfert de données
+    try {
+      await device.connect(timeout: const Duration(seconds: 5));
+    } catch (e) {
+      // Simulation: Lancer une exception personnalisée si la connexion échoue
+      throw Exception('Impossible de se connecter à l\'appareil distant.');
+    }
+    
+    // Simulation d'un délai de transfert
     await Future.delayed(const Duration(seconds: 2));
+    
+    // Simulation d'une erreur de transfert aléatoire (10% de chances)
+    final bool randomError = (DateTime.now().millisecond % 10 == 0);
+    if (randomError) {
+      await device.disconnect();
+      throw Exception('La connexion a été interrompue par l\'appareil distant.');
+    }
     
     await device.disconnect();
   }

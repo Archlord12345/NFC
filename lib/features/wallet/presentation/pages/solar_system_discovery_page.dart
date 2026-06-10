@@ -51,11 +51,58 @@ class _SolarSystemDiscoveryPageState extends State<SolarSystemDiscoveryPage> wit
   }
 
   void _onPeerTap(Peer peer) async {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('Connexion à ${peer.name}...'),
-      backgroundColor: Colors.blueAccent,
-      duration: const Duration(seconds: 1),
-    ));
+    if (!mounted) return;
+
+    final codeController = TextEditingController();
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Couplage avec ${peer.name}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Veuillez entrer le code de confirmation (Pairing Code) affiché sur l\'autre appareil (utilisez 1234 pour tester).'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: codeController,
+              keyboardType: TextInputType.number,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Code PIN',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Confirmer'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    if (codeController.text != '1234') {
+      if (mounted) {
+        _showErrorDialog('Code de confirmation invalide. Le couplage a échoué.');
+      }
+      return;
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Connexion à ${peer.name}...'),
+        backgroundColor: Colors.blueAccent,
+        duration: const Duration(seconds: 1),
+      ));
+    }
 
     try {
       await widget.transferService.sendData(peerId: peer.id, amount: widget.amount);
@@ -69,12 +116,31 @@ class _SolarSystemDiscoveryPageState extends State<SolarSystemDiscoveryPage> wit
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Erreur de transfert: $e'),
-          backgroundColor: Colors.redAccent,
-        ));
+        _showErrorDialog(e.toString().replaceAll('Exception: ', ''));
       }
     }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Échec du transfert'),
+          ],
+        ),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Fermer'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
