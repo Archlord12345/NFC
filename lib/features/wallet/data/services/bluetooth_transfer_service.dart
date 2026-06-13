@@ -55,7 +55,16 @@ class BluetoothTransferService implements ITransferService {
   Future<void> startAdvertising() async {
     // Bluetooth advertising is complex with flutter_blue_plus (it's mainly a central plugin)
     // For a real app, you'd use a peripheral plugin.
-    // Here we simulate being discoverable.
+    // Here we simulate being discoverable and receiving data after a delay.
+    debugPrint('BluetoothTransferService: Simulation de l\'advertising...');
+    await Future.delayed(const Duration(seconds: 10));
+
+    // Simulation d'une réception de données (500 XAF de la part d'un "Bluetooth_Peer")
+    debugPrint('BluetoothTransferService: Simulation d\'une réception de données!');
+    _dataController.add({
+      'amount': 500.0,
+      'senderId': 'BT_PEER_SIM',
+    });
   }
 
   @override
