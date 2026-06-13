@@ -24,6 +24,8 @@ abstract class ITransferService {
 
   Stream<List<Peer>> get discoveredPeers;
 
+  Stream<Map<String, dynamic>> get onDataReceived;
+
   Future<void> sendData({
     required String peerId,
     required double amount,

@@ -29,6 +29,7 @@ class _NfcScanPageState extends State<NfcScanPage>
   final _auth = LocalAuthentication();
   bool _isWritingMode = false;
   bool _isNfcAvailable = true;
+  bool _isProcessingTransfer = false;
 
   @override
   void initState() {
@@ -203,32 +204,47 @@ class _NfcScanPageState extends State<NfcScanPage>
     }
 
     // Gestion automatique de la réussite du transfert
-    if (nfcProvider.status == NfcSessionStatus.success) {
+    if (nfcProvider.status == NfcSessionStatus.success && !_isProcessingTransfer) {
       if (widget.mode == NfcMode.receive && nfcProvider.lastReadData != null) {
         final data = nfcProvider.lastReadData!;
-        final amount = double.parse(data['amount'].toString());
-        final senderId = data['sender'] as String;
+        final amountStr = data['amount']?.toString() ?? '0';
+        final amount = double.tryParse(amountStr) ?? 0.0;
+        final senderId = data['sender'] as String? ?? 'UNKNOWN';
 
+        _isProcessingTransfer = true;
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           final success = await walletProvider.transfertNfc(
             montant: amount,
             isEnvoi: false,
             peerWalletId: senderId,
           );
-          if (mounted && success) {
-            Navigator.of(context).pushReplacementNamed('/nfc-receipt', arguments: amount.toStringAsFixed(2));
+          if (mounted) {
+            context.read<NfcProvider>().reset();
+            if (success) {
+              Navigator.of(context).pushReplacementNamed('/nfc-receipt', arguments: amount.toStringAsFixed(2));
+            } else {
+              setState(() => _isProcessingTransfer = false);
+              _showSnackBar('Transfer failed: ${walletProvider.errorMessage}');
+            }
           }
         });
       } else if (widget.mode == NfcMode.send && _isWritingMode) {
-        final amount = double.parse(_amountController.text);
+        final amount = double.tryParse(_amountController.text) ?? 0.0;
+        _isProcessingTransfer = true;
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           final success = await walletProvider.transfertNfc(
             montant: amount,
             isEnvoi: true,
             peerWalletId: 'NFC_PEER',
           );
-          if (mounted && success) {
-            Navigator.of(context).pushReplacementNamed('/nfc-receipt', arguments: '-$amount');
+          if (mounted) {
+            context.read<NfcProvider>().reset();
+            if (success) {
+              Navigator.of(context).pushReplacementNamed('/nfc-receipt', arguments: '-${amount.toStringAsFixed(2)}');
+            } else {
+              setState(() => _isProcessingTransfer = false);
+              _showSnackBar('Transfer failed: ${walletProvider.errorMessage}');
+            }
           }
         });
       }

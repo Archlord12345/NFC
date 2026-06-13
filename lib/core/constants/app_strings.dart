@@ -6,7 +6,7 @@ class AppStrings {
   AppStrings._();
 
   // ── Application ──
-  static const String appName = 'NFC Cash';
+  static const String appName = 'PAP (PAYPOINT)';
   static const String appTagline = 'Secure. Fast. Effortless.';
 
   // ── Authentification ──

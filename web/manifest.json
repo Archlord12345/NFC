@@ -1,6 +1,6 @@
 {
-    "name": "mon_projet_nfc",
-    "short_name": "mon_projet_nfc",
+    "name": "PAP (PAYPOINT)",
+    "short_name": "PAP (PAYPOINT)",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

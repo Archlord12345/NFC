@@ -11,6 +11,9 @@ class NfcTransferService implements ITransferService {
   Stream<List<Peer>> get discoveredPeers => const Stream.empty();
 
   @override
+  Stream<Map<String, dynamic>> get onDataReceived => const Stream.empty();
+
+  @override
   Future<bool> requestPermissions() async {
     // NFC permissions are handled at manifest level
     return true;
