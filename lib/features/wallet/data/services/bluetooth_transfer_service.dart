@@ -5,8 +5,13 @@ import '../../../../core/transfer/i_transfer_service.dart';
 import '../../../../core/services/service_manager.dart';
 
 class BluetoothTransferService implements ITransferService {
+  final _dataController = StreamController<Map<String, dynamic>>.broadcast();
+
   @override
   TransferMethod get method => TransferMethod.bluetooth;
+
+  @override
+  Stream<Map<String, dynamic>> get onDataReceived => _dataController.stream;
 
   @override
   Stream<List<Peer>> get discoveredPeers => FlutterBluePlus.scanResults.map(

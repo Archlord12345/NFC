@@ -18,6 +18,7 @@ class HistoriquePage extends StatefulWidget {
 class _HistoriquePageState extends State<HistoriquePage> {
   String _filtre = 'Tout';
   final List<String> _filtres = ['Tout', 'Recharge', 'Transfert'];
+  String _tri = 'dateDesc';
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +48,54 @@ class _HistoriquePageState extends State<HistoriquePage> {
           ),
         ),
         centerTitle: true,
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.sort_rounded, color: AppColors.textPrimaryLight),
+            onSelected: (value) => setState(() => _tri = value),
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'dateDesc',
+                child: Row(
+                  children: [
+                    Icon(Icons.calendar_today, size: 18),
+                    SizedBox(width: 8),
+                    Text('Plus récent'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'dateAsc',
+                child: Row(
+                  children: [
+                    Icon(Icons.history, size: 18),
+                    SizedBox(width: 8),
+                    Text('Plus ancien'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'amountDesc',
+                child: Row(
+                  children: [
+                    Icon(Icons.arrow_downward, size: 18),
+                    SizedBox(width: 8),
+                    Text('Montant décroissant'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'amountAsc',
+                child: Row(
+                  children: [
+                    Icon(Icons.arrow_upward, size: 18),
+                    SizedBox(width: 8),
+                    Text('Montant croissant'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Consumer<WalletProvider>(
         builder: (context, provider, _) {
@@ -58,6 +107,21 @@ class _HistoriquePageState extends State<HistoriquePage> {
             if (_filtre == 'Transfert') return tx.type == 'TRANSFERT_NFC';
             return true;
           }).toList();
+
+          // Tri des transactions
+          txFiltrees.sort((a, b) {
+            switch (_tri) {
+              case 'dateAsc':
+                return a.dateCree.compareTo(b.dateCree);
+              case 'amountDesc':
+                return b.montant.compareTo(a.montant);
+              case 'amountAsc':
+                return a.montant.compareTo(b.montant);
+              case 'dateDesc':
+              default:
+                return b.dateCree.compareTo(a.dateCree);
+            }
+          });
 
           return Column(
             children: [

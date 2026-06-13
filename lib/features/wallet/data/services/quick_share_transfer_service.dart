@@ -8,6 +8,7 @@ class QuickShareTransferService implements ITransferService {
   final Strategy strategy = Strategy.P2P_STAR;
   final String userName = 'NFC_User_${DateTime.now().millisecondsSinceEpoch}';
   final _peersController = StreamController<List<Peer>>.broadcast();
+  final _dataController = StreamController<Map<String, dynamic>>.broadcast();
   final Map<String, Peer> _discoveredPeersMap = {};
 
   @override
@@ -15,6 +16,9 @@ class QuickShareTransferService implements ITransferService {
 
   @override
   Stream<List<Peer>> get discoveredPeers => _peersController.stream;
+
+  @override
+  Stream<Map<String, dynamic>> get onDataReceived => _dataController.stream;
 
   @override
   Future<bool> requestPermissions() async {
@@ -31,7 +35,14 @@ class QuickShareTransferService implements ITransferService {
       strategy,
       onConnectionInitiated: (id, info) {
         Nearby().acceptConnection(id, onPayLoadRecieved: (id, payload) {
-          // Gérer la réception du montant ici (ex: notifier le WalletProvider)
+          if (payload.type == PayloadType.BYTES && payload.bytes != null) {
+            final dataStr = String.fromCharCodes(payload.bytes!);
+            final amount = double.tryParse(dataStr) ?? 0.0;
+            _dataController.add({
+              'amount': amount,
+              'senderId': id,
+            });
+          }
         });
       },
       onConnectionResult: (id, status) {},

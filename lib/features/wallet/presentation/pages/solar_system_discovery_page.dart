@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:math';
 import 'dart:async';
 import '../../../../core/transfer/i_transfer_service.dart';
+import '../providers/wallet_provider.dart';
 
 class SolarSystemDiscoveryPage extends StatefulWidget {
   final ITransferService transferService;
@@ -23,6 +25,7 @@ class _SolarSystemDiscoveryPageState extends State<SolarSystemDiscoveryPage> wit
   late AnimationController _controller;
   List<Peer> _peers = [];
   StreamSubscription? _subscription;
+  StreamSubscription? _dataSubscription;
 
   @override
   void initState() {
@@ -35,6 +38,30 @@ class _SolarSystemDiscoveryPageState extends State<SolarSystemDiscoveryPage> wit
         _peers = peers;
       });
     });
+
+    if (widget.isReceiver) {
+      _dataSubscription = widget.transferService.onDataReceived.listen((data) {
+        final amount = data['amount'] as double;
+        final senderId = data['senderId'] as String;
+        _handleIncomingTransfer(amount, senderId);
+      });
+    }
+  }
+
+  Future<void> _handleIncomingTransfer(double amount, String senderId) async {
+    final walletProvider = context.read<WalletProvider>();
+    final success = await walletProvider.transfertNfc(
+      montant: amount,
+      isEnvoi: false,
+      peerWalletId: senderId,
+    );
+    if (mounted && success) {
+      Navigator.pushReplacementNamed(
+        context,
+        '/nfc-receipt',
+        arguments: amount.toStringAsFixed(2),
+      );
+    }
   }
 
   Future<void> _startDiscovery() async {
@@ -108,11 +135,20 @@ class _SolarSystemDiscoveryPageState extends State<SolarSystemDiscoveryPage> wit
       await widget.transferService.sendData(peerId: peer.id, amount: widget.amount);
       
       if (mounted) {
-        Navigator.pushReplacementNamed(
-          context, 
-          '/nfc-receipt', 
-          arguments: '-${widget.amount.toStringAsFixed(2)}'
+        final walletProvider = context.read<WalletProvider>();
+        await walletProvider.transfertNfc(
+          montant: widget.amount,
+          isEnvoi: true,
+          peerWalletId: peer.id,
         );
+
+        if (mounted) {
+          Navigator.pushReplacementNamed(
+            context,
+            '/nfc-receipt',
+            arguments: '-${widget.amount.toStringAsFixed(2)}'
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -146,6 +182,7 @@ class _SolarSystemDiscoveryPageState extends State<SolarSystemDiscoveryPage> wit
   @override
   void dispose() {
     _subscription?.cancel();
+    _dataSubscription?.cancel();
     widget.transferService.stopDiscovery();
     _controller.dispose();
     super.dispose();

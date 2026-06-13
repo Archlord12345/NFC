@@ -92,7 +92,7 @@ class NfcCashApp extends StatelessWidget {
     return Consumer<SettingsProvider>(
       builder: (context, settings, _) {
         return MaterialApp(
-          title: 'NFC Cash',
+          title: 'PAP (PAYPOINT)',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,

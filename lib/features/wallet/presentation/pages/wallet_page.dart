@@ -93,7 +93,7 @@ class _WalletPageState extends State<WalletPage> {
           ),
           const SizedBox(width: 10),
           const Text(
-            'NFC Cash',
+            'PAP (PAYPOINT)',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
